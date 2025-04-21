@@ -24,13 +24,16 @@ namespace astro
         const Shader& shader = frameShaderComponent->shader;
         MyVector2 position = transformComponent->position;
         MyVector2 direction = transformComponent->direction;
+
         int timeLoc = frameShaderComponent->timeLoc;
         int resolutionLoc = frameShaderComponent->resolutionLoc;
         int positionLoc = frameShaderComponent->positionLoc;
         int directionLoc = frameShaderComponent->directionLoc;
+
         Rectangle& sourceRec = frameShaderComponent->sourceRec;
         Rectangle& destRec = frameShaderComponent->destRec;
         MyVector2& origin = frameShaderComponent->origin;
+
         sourceRec = { 0.0f, 0.0f,
                         static_cast<float>(inputTexture.texture.width),
                         static_cast<float>(-inputTexture.texture.height) };
@@ -38,6 +41,7 @@ namespace astro
                       static_cast<float>(outputTexture.texture.width),
                       static_cast<float>(outputTexture.texture.height) };
         origin = { 0.f, 0.f };
+
         BeginTextureMode(outputTexture);
         ClearBackground(BLANK);
         {
@@ -52,14 +56,16 @@ namespace astro
                     static_cast<float>(outputTexture.texture.width),
                     static_cast<float>(outputTexture.texture.height)
                 };
+
                 float pos[2] = { position.x(), position.y() };
-                float dir[2] = { direction.x(), direction.y() };
+                float dir[2] = { direction.x(), -direction.y() };
 
                 SetShaderValue(shader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
                 SetShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
                 SetShaderValue(shader, positionLoc, pos, SHADER_UNIFORM_VEC2);
                 SetShaderValue(shader, directionLoc, dir, SHADER_UNIFORM_VEC2);
             }
+
             DrawTexturePro(inputTexture.texture, sourceRec, destRec, origin, 0.0f, WHITE);
             EndShaderMode();
         }

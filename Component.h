@@ -158,6 +158,21 @@ namespace astro
 		std::vector<std::shared_ptr<Texture2D>> textures;
 
 	};
+
+	struct FrameComponent : public Component
+	{
+		FrameComponent()
+			: size{0.f,0.f,0.f,0.f}
+		{ }
+
+		ComponentID GetID() override 
+		{ 
+			return ComponentID::FRAME_COMPONENT;
+		}
+		
+		std::vector<MyVector2> positions;
+		Rectangle size;
+	};
 	
 	struct ShaderComponent : public Component
 	{

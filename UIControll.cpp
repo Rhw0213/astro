@@ -20,7 +20,7 @@ namespace astro
 
 		position = { 0, 0 };
 
-		Texture2D texture = LoadTexture("resource/ControllUI.png");
+		Texture2D texture = LoadTexture("game/resource/ControllUI.png");
 		textures.push_back(std::make_shared<Texture2D>(texture));
 	}
 

@@ -12,10 +12,10 @@ namespace astro
 	static const float MIN_STAR_SIZE = 1.0f; // 실제 최소 크기 설정
 	static const float MAX_STAR_SIZE = 3.0f; // 실제 최대 크기 설정
 
-	static const char* colorDiffusionFs = "ColorDiffusion.fs";
-	static const char* frameFs = "Frame.fs";
+	static const char* colorDiffusionFs = "game/ColorDiffusion.fs";
+	static const char* frameFs = "game/Frame.fs";
 
-	static const char* defaultVs = "Default.vs";
+	static const char* defaultVs = "game/Default.vs";
 
 	enum ComponentID
 	{
@@ -28,6 +28,7 @@ namespace astro
 		ROTATION_COMPONENT,
 		WARP_COMPONENT,
 		UI_COMPONENT,
+		FRAME_COMPONENT,
 		SHADER_COMPONENT,
 		SHADER_COLOR_DIFFUSION_COMPONENT,
 		SHADER_FRAME_COMPONENT
@@ -41,10 +42,15 @@ namespace astro
 
 	enum ObjectID
 	{
+		//GameObject
 		GAMEOBJECT_ID,
 		PLAYER_ID,
 		STAR_ID,
 		ASTEROID_ID,
+
+		//Effect
+		FRAME_ID,
+
 		//UI
 		UI_ID,
 		CONTROLL_UI_ID,

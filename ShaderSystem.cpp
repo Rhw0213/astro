@@ -9,66 +9,23 @@ namespace astro
 			: renderTarget(LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT))
 			, effectTarget(LoadRenderTexture(SCREEN_WIDTH, SCREEN_HEIGHT))
 			, screenDestRec{ 0.0f, 0.0f, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)}
+			, screenDestRecYReverse{ 0.0f, 0.0f, static_cast<float>(SCREEN_WIDTH), -static_cast<float>(SCREEN_HEIGHT)}
 	{ }
 
 	void ShaderSystem::Init()
 	{
-		shaderEffects.push_back(std::make_shared<ColorDiffusionShader>());
-		shaderEffects.push_back(std::make_shared<FrameShader>());
-
-		//  오브젝트만 처리
-		for (const auto& shaderEffect : shaderEffects)
+		for (const auto& object : objects)
 		{
-			for (const auto& object : objects)
+		    auto* colorDiffusionComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
+		    if (colorDiffusionComponent)
+		    {
+				FindObjectAndSetShader(object, std::make_shared<ColorDiffusionShader>());
+		    }
+		
+			auto* FrameComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentID::SHADER_FRAME_COMPONENT);
+			if (FrameComponent)
 			{
-				if (shaderEffect.get()->GetID() == ObjectID::SHADER_COLOR_DIFFUSION_ID)
-				{
-					auto* shaderColorDiffusionComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
-
-					if (shaderColorDiffusionComponent)
-					{
-						auto it = std::find_if(objectAndShaders.begin(), objectAndShaders.end(), [object](const ObjectAndShader& objectAndShader) {
-								return object == objectAndShader.object;
-						});
-
-						if (it == objectAndShaders.end()) // 못찾으면
-						{
-							ObjectAndShader objectAndShader;
-
-							objectAndShader.object = object;
-							objectAndShader.shaders.push_back(shaderEffect);
-							objectAndShaders.push_back(objectAndShader);
-						}
-						else
-						{
-							it->shaders.push_back(shaderEffect);
-						}
-					}
-				}
-				else if (shaderEffect.get()->GetID() == ObjectID::SHADER_FRAME_ID)
-				{
-					auto* frameShaderComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentID::SHADER_FRAME_COMPONENT);
-
-					if (frameShaderComponent)
-					{
-						auto it = std::find_if(objectAndShaders.begin(), objectAndShaders.end(), [object](const ObjectAndShader& objectAndShader) {
-								return object == objectAndShader.object;
-						});
-
-						if (it == objectAndShaders.end()) // 못찾으면
-						{
-							ObjectAndShader objectAndShader;
-
-							objectAndShader.object = object;
-							objectAndShader.shaders.push_back(shaderEffect);
-							objectAndShaders.push_back(objectAndShader);
-						}
-						else
-						{
-							it->shaders.push_back(shaderEffect);
-						}
-					}
-				}
+				FindObjectAndSetShader(object, std::make_shared<FrameShader>());
 			}
 		}
 
@@ -106,18 +63,32 @@ namespace astro
 			for (const auto& shaderEffect : objectAndShader.shaders)
 			{
 				shaderEffect.get()->Update(object, *inputTexture, *outputTexture);
+				std::swap(inputTexture, outputTexture);
 			}
 		}
 
-		std::swap(inputTexture, outputTexture);
-
 		ClearBackground(BLANK);
 
-		Rectangle sourceRec = { 0.0f, 0.0f, 
-								static_cast<float>(inputTexture->texture.width), 
-								static_cast<float>(-inputTexture->texture.height)
-		}; 
+		DrawTexturePro(inputTexture->texture, screenDestRecYReverse, screenDestRec, {0.f, 0.f}, 0.0f, WHITE);
+	}
 
-		DrawTexturePro(inputTexture->texture, sourceRec, screenDestRec, {0.f, 0.f}, 0.0f, WHITE);
+	void ShaderSystem::FindObjectAndSetShader(std::shared_ptr<Object> object, std::shared_ptr<ShaderEffect> shaderEffect)
+	{
+		auto it = std::find_if(objectAndShaders.begin(), objectAndShaders.end(), [object](const ObjectAndShader& objectAndShader) {
+				return object == objectAndShader.object;
+		});
+
+		if (it == objectAndShaders.end()) // 못찾으면
+		{
+			ObjectAndShader objectAndShader;
+
+			objectAndShader.object = object;
+			objectAndShader.shaders.push_back(shaderEffect);
+			objectAndShaders.push_back(objectAndShader);
+		}
+		else
+		{
+			it->shaders.push_back(shaderEffect);
+		}
 	}
 }
