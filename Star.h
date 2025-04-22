@@ -7,7 +7,7 @@ namespace astro
 	{
 	public:
 		Star(const MyVector2& position = {0, 0});
-		ObjectID GetID() const override { return ObjectID::STAR_ID; };
+		ObjectType GetType() const override { return ObjectType::STAR_ID; };
 		void Init() override;
 		void Update() override;
 

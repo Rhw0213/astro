@@ -11,7 +11,7 @@ namespace astro
 		void Init() override;
 		void Update() override;
 
-		ObjectID GetID() const override { return ObjectID::ASTEROID_ID; };
+		ObjectType GetType() const override { return ObjectType::ASTEROID_ID; };
 	private:
 		void SetVertex();
 		PerlinNoise perlinNoise;

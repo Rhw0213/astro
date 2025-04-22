@@ -16,13 +16,13 @@ namespace astro
 	{
 		for (const auto& object : objects)
 		{
-		    auto* colorDiffusionComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
+		    auto* colorDiffusionComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT);
 		    if (colorDiffusionComponent)
 		    {
 				FindObjectAndSetShader(object, std::make_shared<ColorDiffusionShader>());
 		    }
 		
-			auto* FrameComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentID::SHADER_FRAME_COMPONENT);
+			auto* FrameComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentType::SHADER_FRAME_COMPONENT);
 			if (FrameComponent)
 			{
 				FindObjectAndSetShader(object, std::make_shared<FrameShader>());

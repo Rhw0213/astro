@@ -1,21 +1,21 @@
-#include "StarEffectSystem.h"
+#include "BrightEffectSystem.h"
 #include "Component.h"
 #include "PlayerState.h"
 
 namespace astro
 {
-    void StarEffectSystem::Init()
+    void BrightEffectSystem::Init()
     {
     }
 
-    void StarEffectSystem::Process()
+    void BrightEffectSystem::Process()
     {
         for (const auto& object : objects)
         {
             if (object)
             {
-                auto* effectComponent = object.get()->GetComponent<EffectComponent>(ComponentID::EFFECT_COMPONENT);
-                auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+                auto* effectComponent = object.get()->GetComponent<BrightEffectComponent>(ComponentType::BRIGHT_EFFECT_COMPONENT);
+                auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
                 int& bright = effectComponent->bright;
                 float& twinkle = effectComponent->twinkle;

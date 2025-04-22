@@ -10,9 +10,9 @@ namespace astro
 	{
 		for (const auto& object : objects)
 		{
-			auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-			auto* moveComponent = object.get()->GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT);
-			auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
+			auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+			auto* moveComponent = object.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
+			auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
 
 			if (object && transformComponent && moveComponent && renderComponent)
 			{

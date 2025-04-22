@@ -8,7 +8,7 @@ namespace astro
 	{
 	public:
 		Player(const MyVector2& position = {0, 0});
-		ObjectID GetID() const override { return ObjectID::PLAYER_ID; };
+		ObjectType GetType() const override { return ObjectType::PLAYER_ID; };
 		void Init() override;
 		void Update() override;
 	private:

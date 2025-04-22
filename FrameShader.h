@@ -9,7 +9,7 @@ namespace astro
 		virtual void Init(std::shared_ptr<Object> object) override; 
 		virtual void Update(std::shared_ptr<Object> object, const RenderTexture2D& inputTexture, const RenderTexture2D& outputTexture) override;
 
-		ObjectID GetID() const override { return ObjectID::SHADER_FRAME_ID; };
+		ObjectType GetType() const override { return ObjectType::SHADER_FRAME_ID; };
 	private:
 
 	};

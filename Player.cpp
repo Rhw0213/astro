@@ -13,17 +13,16 @@ namespace astro
 		Object::AddComponent(std::make_shared<InputComponent>());
 		Object::AddComponent(std::make_shared<MoveComponent>());
 		Object::AddComponent(std::make_shared<CameraComponent>());
-		Object::AddComponent(std::make_shared<FrameShaderComponent>());
 	}
 
 	void Player::Init()
 	{
-		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentID::ROTATION_COMPONENT);
-		//auto* shaderComponent = Object::GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
+		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
 
-		auto& camera= Object::GetComponent<CameraComponent>(ComponentID::CAMERA_COMPONENT)->camera;
+
+		auto& camera= Object::GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT)->camera;
 
 		if (transformComponent && renderComponent && rotationComponent)
 		{
@@ -49,6 +48,7 @@ namespace astro
 			//shader
 			//auto& shaderName = shaderComponent;
 			//shaderName.push_back(ShaderName::FRAME);
+			//framePosition
 
 			//camera
 			camera.offset = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
@@ -64,12 +64,13 @@ namespace astro
 	{
 		PlayerState::Instance().Update(shared_from_this());
 
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentID::ROTATION_COMPONENT);
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto* frameComponent = Object::GetComponent<FrameComponent>(ComponentType::FRAME_COMPONENT);
 
 		Angle& angle = rotationComponent->angle;
 		const MyVector2& direction = transformComponent->direction;
-
+		
 		angle.radian = atan2f(direction.y(), direction.x());
 	}
 }

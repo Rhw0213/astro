@@ -1,9 +1,12 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <bitset>
+#include <map>
 #include <initializer_list>
 #include "System.h" 
 #include "ShaderSystem.h" 
+#include "GameObject.h" 
 
 namespace astro
 {
@@ -13,39 +16,48 @@ namespace astro
 		SystemManager();
 		~SystemManager() = default;
 	public:
-		enum SystemID
+		enum class SystemID
 		{
-			INPUT_SYSTEM,
-			CAMERA_SYSTEM,
-			MOVE_SYSTEM,
-			STAR_EFFECT_SYSTEM,
-			WARP_SYSTEM,
-			ROTATION_SYSTEM,
-			RENDER_SYSTEM,
-			SHADER_SYSTEM
+			INPUT_SYSTEM		, 
+			CAMERA_SYSTEM		, 
+			MOVE_SYSTEM			, 
+			BRIGHT_EFFECT_SYSTEM  , 
+			WARP_SYSTEM			, 
+			ROTATION_SYSTEM		, 
+			FRAME_SYSTEM		, 
+			//¸¶Áö¸·
+			RENDER_SYSTEM		, 
+			SHADER_SYSTEM		,
+			COUNT
 		};
-
-		template <typename T>
-		void RegisterObjectOfSystem(std::initializer_list<SystemID> ids, std::shared_ptr<T> ptr)
-		{
-			for (const auto& id : ids)
-			{
-				systems[id].get()->RegisterObject(ptr);
-			}
-		}
+			
+		void RegisterObjectOfSystem(std::shared_ptr<GameObject> gameObject);
 
 		void Init();
 		void Update();
 		void Draw();
 
 	private:
-		template <typename T>
-		void RegisterSystem(std::shared_ptr<T> ptr)
+		enum class RegisterLogic
 		{
-			systems.push_back(ptr);
+			ALL,
+			ANY
+		};
+
+		struct Mask
+		{
+			unsigned int mask;
+			RegisterLogic registerLogic;
+		};
+
+		template <typename T>
+		void RegisterSystem(SystemID systemId, std::shared_ptr<T> system)
+		{
+			systems.insert({systemId, system});
 		}
 
 	private:
-		std::vector<std::shared_ptr<System>> systems;
+		std::map<SystemID, std::shared_ptr<System>> systems;
+		std::map<SystemID, Mask> systemRequirement;
 	};
 }

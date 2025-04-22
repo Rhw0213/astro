@@ -11,14 +11,14 @@ namespace astro
 		{
 			if (object)
 			{
-				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentID::CAMERA_COMPONENT);
+				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
 				Camera2D& camera = cameraComponent->camera;
 				float& targetZoom = cameraComponent->targetZoom;
 				
 				targetZoom = camera.zoom;
 
 				EventManager::Instance().RegisterEvent<CameraZoomEvent>([&](const CameraZoomEvent* e) {
-					auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentID::CAMERA_COMPONENT);
+					auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
 					float& targetZoom = cameraComponent->targetZoom;
 					float& zoomSpeed = cameraComponent->zoomSpeed;
 
@@ -35,8 +35,8 @@ namespace astro
 		{
 			if (object)
 			{
-				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentID::CAMERA_COMPONENT);
-				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
+				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
 				Camera2D& camera = cameraComponent->camera;
 				float& zoom = camera.zoom;

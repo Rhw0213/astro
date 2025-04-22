@@ -12,8 +12,8 @@ namespace astro
 
 	void UIControll::Init()
 	{
-		auto* uiComponent = Object::GetComponent<UIComponent>(ComponentID::UI_COMPONENT);
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+		auto* uiComponent = Object::GetComponent<UIComponent>(ComponentType::UI_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
 		auto& textures = uiComponent->textures;
 		MyVector2& position = transformComponent->position;
@@ -30,8 +30,8 @@ namespace astro
 
 	void UIControll::Draw()
 	{
-		const auto& textures = Object::GetComponent<UIComponent>(ComponentID::UI_COMPONENT)->textures;
-		const auto& position = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT)->position;
+		const auto& textures = Object::GetComponent<UIComponent>(ComponentType::UI_COMPONENT)->textures;
+		const auto& position = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT)->position;
 
 		for (const auto& texture : textures)
 		{

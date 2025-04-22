@@ -13,9 +13,9 @@ namespace astro
 
 	void Asteroid::Init()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT);
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentID::ROTATION_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
+		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
 
 		transformComponent->size = Random::randAsteroidSize(Random::gen);
 		transformComponent->position = { Random::randScreenX(Random::gen), Random::randScreenY(Random::gen)};
@@ -33,9 +33,9 @@ namespace astro
 
 	void Asteroid::Update()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT);
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentID::ROTATION_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
+		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
 
 		const MyVector2& position = transformComponent->position;
 		MyVector2& direction = transformComponent->direction;
@@ -61,8 +61,8 @@ namespace astro
 
 	void Asteroid::SetVertex()
 	{
-		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
 		const float& size = transformComponent->size;
 		const MyVector2 position = transformComponent->position;

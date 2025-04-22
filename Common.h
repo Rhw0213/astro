@@ -6,6 +6,8 @@
 
 namespace astro
 {
+	using InstanceID = size_t;
+
 	static const int SCREEN_WIDTH = 1200;
 	static const int SCREEN_HEIGHT = 800;
 
@@ -17,31 +19,37 @@ namespace astro
 
 	static const char* defaultVs = "game/Default.vs";
 
-	enum ComponentID
+	enum class ComponentType
 	{
-		TRANSFORM_COMPONENT,
-		RENDER_COMPONENT,
-		MOVE_COMPONENT,
-		INPUT_COMPONENT,
-		EFFECT_COMPONENT,
-		CAMERA_COMPONENT,
-		ROTATION_COMPONENT,
-		WARP_COMPONENT,
-		UI_COMPONENT,
-		FRAME_COMPONENT,
-		SHADER_COMPONENT,
-		SHADER_COLOR_DIFFUSION_COMPONENT,
-		SHADER_FRAME_COMPONENT
+		TRANSFORM_COMPONENT					= 1 << 0,
+		RENDER_COMPONENT					= 1 << 1,
+		MOVE_COMPONENT						= 1 << 2,
+		INPUT_COMPONENT						= 1 << 3,
+		BRIGHT_EFFECT_COMPONENT				= 1 << 4,
+		CAMERA_COMPONENT					= 1 << 5,
+		ROTATION_COMPONENT					= 1 << 6,
+		WARP_COMPONENT						= 1 << 7,
+		UI_COMPONENT						= 1 << 8,
+		FRAME_COMPONENT						= 1 << 9,
+		SHADER_COMPONENT					= 1 << 10,
+		SHADER_COLOR_DIFFUSION_COMPONENT	= 1 << 11,
+		SHADER_FRAME_COMPONENT				= 1 << 12
 	};
 
-	enum ShaderName
+	inline ComponentType operator|(ComponentType a , ComponentType b)
+	{
+		return static_cast<ComponentType>(static_cast<int>(a) | static_cast<int>(b));
+	}
+
+	enum class ShaderName
 	{
 		COLOR_DIFFUSION, // »Ç»ç½Ã 
 		FRAME,
 	};
 
-	enum ObjectID
+	enum class ObjectType
 	{
+		NONE,
 		//GameObject
 		GAMEOBJECT_ID,
 		PLAYER_ID,

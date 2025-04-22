@@ -13,6 +13,6 @@ namespace astro
 		virtual void Init() = 0;
 		virtual void Update() = 0;
 
-		ObjectID GetID() const override { return ObjectID::GAMEOBJECT_ID; };
+		ObjectType GetType() const override { return ObjectType::GAMEOBJECT_ID; };
 	};
 }

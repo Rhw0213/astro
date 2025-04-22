@@ -9,7 +9,7 @@ namespace astro
 
 	void ColorDiffusionShader::Init(std::shared_ptr<Object> object)
 	{
-		auto* colorDiffusionShaderComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
+		auto* colorDiffusionShaderComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT);
 		const Shader& shader = colorDiffusionShaderComponent->shader;
 
 		if (colorDiffusionShaderComponent)
@@ -23,7 +23,7 @@ namespace astro
 
 	void ColorDiffusionShader::Update(std::shared_ptr<Object> object, const RenderTexture2D& inputTexture, const RenderTexture2D& outputTexture)
 	{
-		auto* colorDiffusionShaderComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT);
+		auto* colorDiffusionShaderComponent = object.get()->GetComponent<ColorDiffusionShaderComponent>(ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT);
 		const Shader& shader = colorDiffusionShaderComponent->shader;
 
 		int textureLoc = colorDiffusionShaderComponent->textureLoc;

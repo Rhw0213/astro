@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include <unordered_map>
 #include <memory>
 #include "GameObject.h" 
 
@@ -11,19 +11,28 @@ namespace astro
 		ObjectManager() = default;
 		~ObjectManager() = default;
 
-		template <typename T>
-		std::shared_ptr<T> CreateObject()
+		template <typename T, typename... Args>
+		std::shared_ptr<T> CreateObject(Args&&... args)
 		{
-			std::shared_ptr<T> ptr = std::make_shared<T>();
-			objects.push_back(ptr);
+			std::shared_ptr<T> ptr = std::make_shared<T>(std::forward<Args>(args)...);
+
+			if (ptr)
+			{
+				gameObjects.insert( { ptr.get()->GetInstanceID(), ptr } );
+				return ptr;
+			}
+
 			return ptr;
 		}
+
+		void InsertObject(std::shared_ptr<GameObject> gameObject);
+		std::shared_ptr<GameObject> GetGameObject(InstanceID instanceId);
 
 		void Init();
 		void Update();
 
 	private:
-		std::vector<std::shared_ptr<GameObject>> objects;
+		std::unordered_map<InstanceID, std::shared_ptr<GameObject>> gameObjects;
 	};
 
 }

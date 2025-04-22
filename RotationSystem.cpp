@@ -11,9 +11,9 @@ namespace astro
 	{
 		for (const auto& object : objects)
 		{
-			auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-			auto* rotationComponent = object.get()->GetComponent<RotationComponent>(ComponentID::ROTATION_COMPONENT);
-			auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
+			auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+			auto* rotationComponent = object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+			auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
 
 			const MyVector2& position = transformComponent->position;
 			float& currentAngle = rotationComponent->angle.radian;

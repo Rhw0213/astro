@@ -7,7 +7,7 @@ namespace astro
 	{
 	public:
 		UIControll();
-		ObjectID GetID() const override { return ObjectID::CONTROLL_UI_ID; };
+		ObjectType GetType() const override { return ObjectType::CONTROLL_UI_ID; };
 		void Init() override;
 		void Update() override;
 		void Draw() override;

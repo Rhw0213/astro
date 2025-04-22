@@ -12,9 +12,9 @@ namespace astro
         {
             EventManager::Instance().RegisterEvent<WarpStartEvent>([&](const WarpStartEvent* e)
                 {
-                    auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
-                    auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-                    auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentID::WARP_COMPONENT);
+                    auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+                    auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+                    auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
 
                     auto& points = renderComponent->points;
                     float size = transformComponent->size;
@@ -23,7 +23,7 @@ namespace astro
                     MyVector2 effectDirection =
                         PlayerState::Instance()
                         .GetPlayer()
-                        .get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT)->direction;
+                        .get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT)->direction;
                     effectDirection *= -1.0f;
 
                     MyVector2 effectLine = effectDirection * 2.f;
@@ -38,7 +38,7 @@ namespace astro
             );
 
             EventManager::Instance().RegisterEvent<WarpStopEvent>([&](const WarpStopEvent* e) {
-                auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentID::WARP_COMPONENT);
+                auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
                 warpComponent->isWarp = false;
             });
         }
@@ -48,9 +48,9 @@ namespace astro
 	{
         for (const auto& object : objects)
         {
-            auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
-            auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-            auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentID::WARP_COMPONENT);
+            auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+            auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+            auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
 
             auto& points = renderComponent->points;
             float size = transformComponent->size;

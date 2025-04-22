@@ -4,7 +4,7 @@ namespace astro
 {
 	void FrameShader::Init(std::shared_ptr<Object> object)
 	{
-		auto* frameShaderComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentID::SHADER_FRAME_COMPONENT);
+		auto* frameShaderComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentType::SHADER_FRAME_COMPONENT);
 		const Shader& shader = frameShaderComponent->shader;
 
 		if (frameShaderComponent)
@@ -18,8 +18,8 @@ namespace astro
 
 	void FrameShader::Update(std::shared_ptr<Object> object, const RenderTexture2D& inputTexture, const RenderTexture2D& outputTexture)
 	{
-        auto* frameShaderComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentID::SHADER_FRAME_COMPONENT);
-        auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+        auto* frameShaderComponent = object.get()->GetComponent<FrameShaderComponent>(ComponentType::SHADER_FRAME_COMPONENT);
+        auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
         const Shader& shader = frameShaderComponent->shader;
         MyVector2 position = transformComponent->position;

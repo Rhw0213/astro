@@ -1,17 +1,15 @@
 #pragma once
 #include "System.h"
-#include "Star.h"
-#include <vector>
-#include <memory>
+#include "ObjectManager.h"
 
 namespace astro
 {
-	class StarEffectSystem : public System
+	class FrameSystem : public System
 	{
 	public:
-		StarEffectSystem() = default;
 		void Init() override;
 		void Process() override;
 	private:
+		std::unique_ptr<ObjectManager> objectManager;
 	};
 }

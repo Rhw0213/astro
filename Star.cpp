@@ -12,24 +12,24 @@ namespace astro
 		Object::AddComponent(std::make_shared<TransformComponent>(position));
 		Object::AddComponent(std::make_shared<MoveComponent>());
 		Object::AddComponent(std::make_shared<RenderComponent>());
-		Object::AddComponent(std::make_shared<EffectComponent>());
+		Object::AddComponent(std::make_shared<BrightEffectComponent>());
 		Object::AddComponent(std::make_shared<WarpComponent>());
 	}
 
 	void Star::Init()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
-		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
-		auto* effectComponent = Object::GetComponent<EffectComponent>(ComponentID::EFFECT_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+		auto* brightEffectComponent = Object::GetComponent<BrightEffectComponent>(ComponentType::BRIGHT_EFFECT_COMPONENT);
 
-		if (renderComponent && transformComponent && effectComponent)
+		if (renderComponent && transformComponent && brightEffectComponent)
 		{
 			float margin = 300.f;
 			std::uniform_real_distribution<float> randPosX(-margin, astro::SCREEN_WIDTH + margin);
 			std::uniform_real_distribution<float> randPosY(-margin, astro::SCREEN_HEIGHT + margin);
 
-			effectComponent->bright = Random::randBright(Random::gen);
-			effectComponent->twinkle = Random::randTwinkle(Random::gen);
+			brightEffectComponent->bright = Random::randBright(Random::gen);
+			brightEffectComponent->twinkle = Random::randTwinkle(Random::gen);
 
 			Color starColors[] = {
 				{150, 180, 255, 255}, // 파란 별 (뜨거움)
@@ -39,15 +39,15 @@ namespace astro
 				{255, 200, 150, 255}, // 주황색
 				{255, 150, 100, 255}  // 붉은 별 (차가움)
 			};
-			effectComponent->color = starColors[Random::randColor(Random::gen)];
+			brightEffectComponent->color = starColors[Random::randColor(Random::gen)];
 
 			transformComponent->size = Random::randSize(Random::gen);
 			transformComponent->position = MyVector2{ randPosX(Random::gen), randPosY(Random::gen) };
 
 			float sizeRatio = (transformComponent->size - MIN_STAR_SIZE) / (MAX_STAR_SIZE - MIN_STAR_SIZE);
-			effectComponent->distanceDepth = 1.0f - sizeRatio;
-			effectComponent->maxSize = transformComponent->size;
-			effectComponent->distanceDepth = std::clamp(effectComponent->distanceDepth, 0.1f, 1.0f);
+			brightEffectComponent->distanceDepth = 1.0f - sizeRatio;
+			brightEffectComponent->maxSize = transformComponent->size;
+			brightEffectComponent->distanceDepth = std::clamp(brightEffectComponent->distanceDepth, 0.1f, 1.0f);
 
 			renderComponent->points.push_back(transformComponent->position);
 		}
@@ -55,7 +55,7 @@ namespace astro
 
 	void Star::Update()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 		MyVector2& position = transformComponent->position;
 
 		Move();
@@ -68,17 +68,17 @@ namespace astro
 
 	void Star::Move()
 	{
-		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT);
-		auto* effectComponent = Object::GetComponent<EffectComponent>(ComponentID::EFFECT_COMPONENT);
+		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
+		auto* brightEffectComponent = Object::GetComponent<BrightEffectComponent>(ComponentType::BRIGHT_EFFECT_COMPONENT);
 		
-		if (moveComponent && effectComponent)
+		if (moveComponent && brightEffectComponent)
 		{
 			std::shared_ptr<Player> player = PlayerState::Instance().GetPlayer();
 
-			const MyVector2& playerMoveDirection = player.get()->GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT)->direction;
-			const float& playerSpeed = player.get()->GetComponent<MoveComponent>(ComponentID::MOVE_COMPONENT)->speed;
+			const MyVector2& playerMoveDirection = player.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT)->direction;
+			const float& playerSpeed = player.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT)->speed;
 
-			const float& depth = effectComponent->distanceDepth;
+			const float& depth = brightEffectComponent->distanceDepth;
 
 			moveComponent->direction = playerMoveDirection;
 			moveComponent->speed = playerSpeed * depth;
@@ -113,7 +113,7 @@ namespace astro
 
 	void Star::SetRandomPosition(Bound bound, IsLineOut isLineOut, MyVector2& position)
 	{
-		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT);
+		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
 
 		float margin = 300.f;
 		Rectangle spotRange{ 0,0,0,0 };

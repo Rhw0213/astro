@@ -13,7 +13,7 @@ namespace astro
 		//UI
 		for (const auto& object : objects)
 		{
-			if (object.get()->GetID() == ObjectID::CONTROLL_UI_ID)
+			if (object.get()->GetType() == ObjectType::CONTROLL_UI_ID)
 			{
 				std::shared_ptr<UI> uiPtr = std::dynamic_pointer_cast<UI>(object);
 
@@ -27,7 +27,7 @@ namespace astro
 		// 카메라   오브젝트 찾기
 		for (const auto& object : objects)
 		{
-			if (object.get()->GetID() == ObjectID::PLAYER_ID)
+			if (object.get()->GetType() == ObjectType::PLAYER_ID)
 			{
 				cameraObjects.push_back(std::shared_ptr<Object>(object));
 			}
@@ -43,7 +43,7 @@ namespace astro
 		//Camera
 		for (const auto& object: cameraObjects)
 		{
-			auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentID::CAMERA_COMPONENT);
+			auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
 			if (cameraComponent)
 			{
 				Camera2D& camera = cameraComponent->camera;
@@ -53,7 +53,7 @@ namespace astro
 
 		for (const auto& object: objects)
 		{
-			if (object.get()->GetID() == ObjectID::CONTROLL_UI_ID)
+			if (object.get()->GetType() == ObjectType::CONTROLL_UI_ID)
 			{
 				continue;
 			}
@@ -61,8 +61,8 @@ namespace astro
 			//Object
 			if (object)
 			{
-				auto& points = object.get()->GetComponent<RenderComponent>(ComponentID::RENDER_COMPONENT)->points;
-				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentID::TRANSFORM_COMPONENT);
+				auto& points = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT)->points;
+				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
 				const MyVector2& direction = transformComponent->direction;
 				const MyVector2& position = transformComponent->position;
@@ -70,12 +70,12 @@ namespace astro
 
 				size_t pointsSize = points.size();
 
-				if (object->GetID() == ObjectID::STAR_ID)
+				if (object->GetType() == ObjectType::STAR_ID)
 				{
-					auto* effectComponent = object.get()->GetComponent<EffectComponent>(ComponentID::EFFECT_COMPONENT);
-					int bright = effectComponent->bright;
-					float maxSize = effectComponent->maxSize;
-					Color starColor = effectComponent->color;
+					auto* brightEffectComponent = object.get()->GetComponent<BrightEffectComponent>(ComponentType::BRIGHT_EFFECT_COMPONENT);
+					int bright = brightEffectComponent->bright;
+					float maxSize = brightEffectComponent->maxSize;
+					Color starColor = brightEffectComponent->color;
 					
 					enum DrawIndex
 					{
@@ -105,7 +105,7 @@ namespace astro
 					}
 
 				}
-				else if (object.get()->GetID() == ObjectID::PLAYER_ID)
+				else if (object.get()->GetType() == ObjectType::PLAYER_ID)
 				{
 					for (size_t i = 0; i < pointsSize; i++)
 					{
@@ -122,7 +122,7 @@ namespace astro
 						static_cast<int>(endPoint.x()),
 						static_cast<int>(endPoint.y()), YELLOW);
 				}
-				else if (object.get()->GetID() == ObjectID::ASTEROID_ID)
+				else if (object.get()->GetType() == ObjectType::ASTEROID_ID)
 				{
 					if (pointsSize > 3)
 					{

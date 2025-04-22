@@ -8,7 +8,7 @@ namespace astro
 	struct Component 
 	{ 
 	public:
-		virtual ComponentID GetID() = 0;
+		virtual ComponentType GetType() = 0;
 		virtual ~Component() = default; 
 	};
 
@@ -20,9 +20,9 @@ namespace astro
 			, size(size)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::TRANSFORM_COMPONENT;
+			return ComponentType::TRANSFORM_COMPONENT;
 		}
 
 		MyVector2 position{ 0, 0 };
@@ -35,9 +35,9 @@ namespace astro
 		RenderComponent()
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::RENDER_COMPONENT;
+			return ComponentType::RENDER_COMPONENT;
 		}
 
 		std::vector<MyVector2> points;
@@ -47,9 +47,9 @@ namespace astro
 	{
 		InputComponent() { }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::INPUT_COMPONENT;
+			return ComponentType::INPUT_COMPONENT;
 		}
 	};
 
@@ -61,9 +61,9 @@ namespace astro
 			, slowVelocity(slowVelocity)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::MOVE_COMPONENT;
+			return ComponentType::MOVE_COMPONENT;
 		}
 
 		MyVector2 direction{ 0, 0 };
@@ -71,9 +71,9 @@ namespace astro
 		float speed = 0.f;
 	};
 
-	struct EffectComponent : public Component
+	struct BrightEffectComponent : public Component
 	{
-		EffectComponent(int bright = 0.f, float twinkle = 0.f)
+		BrightEffectComponent(int bright = 0.f, float twinkle = 0.f)
 			: bright(bright)
 			, twinkle(twinkle)
 			, time(0.f)
@@ -82,9 +82,9 @@ namespace astro
 			, color(WHITE)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::EFFECT_COMPONENT;
+			return ComponentType::BRIGHT_EFFECT_COMPONENT;
 		}
 
 		int bright = 0;
@@ -106,9 +106,9 @@ namespace astro
 			, zoomSpeed(0.f)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::CAMERA_COMPONENT;
+			return ComponentType::CAMERA_COMPONENT;
 		}
 
 		Camera2D camera;
@@ -123,9 +123,9 @@ namespace astro
 			, previousAngle{ previousAngle }
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::ROTATION_COMPONENT;
+			return ComponentType::ROTATION_COMPONENT;
 		}
 
 		Angle angle = { 0.f };
@@ -137,9 +137,9 @@ namespace astro
 		WarpComponent()
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::WARP_COMPONENT;
+			return ComponentType::WARP_COMPONENT;
 		}
 		
 		bool isWarp = false;
@@ -150,9 +150,9 @@ namespace astro
 		UIComponent()
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::UI_COMPONENT;
+			return ComponentType::UI_COMPONENT;
 		}
 		
 		std::vector<std::shared_ptr<Texture2D>> textures;
@@ -161,17 +161,20 @@ namespace astro
 
 	struct FrameComponent : public Component
 	{
-		FrameComponent()
+		FrameComponent(InstanceID target = 0)
 			: size{0.f,0.f,0.f,0.f}
+			, target(target)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::FRAME_COMPONENT;
+			return ComponentType::FRAME_COMPONENT;
 		}
 		
 		std::vector<MyVector2> positions;
+		MyVector2 direction;
 		Rectangle size;
+		InstanceID target;
 	};
 	
 	struct ShaderComponent : public Component
@@ -185,9 +188,9 @@ namespace astro
 			, origin{0.f, 0.f}
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::SHADER_COMPONENT;
+			return ComponentType::SHADER_COMPONENT;
 		}
 
 		Shader shader;
@@ -209,9 +212,9 @@ namespace astro
 			, colorThresholdLoc(0)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::SHADER_COLOR_DIFFUSION_COMPONENT;
+			return ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT;
 		}
 
 		int textureLoc = 0;
@@ -231,9 +234,9 @@ namespace astro
 			, resolutionLoc(0)
 		{ }
 
-		ComponentID GetID() override 
+		ComponentType GetType() override 
 		{ 
-			return ComponentID::SHADER_FRAME_COMPONENT;
+			return ComponentType::SHADER_FRAME_COMPONENT;
 		}
 
 		float time = 0.f;

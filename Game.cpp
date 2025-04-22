@@ -1,11 +1,14 @@
 #include "Game.h"
 #include "Common.h"
 #include "raylib.h"
+#include "Frame.h"
 
 namespace astro
 {
 	Game::Game()
 	{
+		InitWindow(astro::SCREEN_WIDTH, astro::SCREEN_HEIGHT, "Game");
+		SetTargetFPS(60);
 	}
 
 	Game::~Game()
@@ -15,67 +18,38 @@ namespace astro
 
 	void Game::Init()
 	{
-		InitWindow(astro::SCREEN_WIDTH, astro::SCREEN_HEIGHT, "Game");
-		SetTargetFPS(60);
-
 		//Manager
-		starManager = std::make_unique<ObjectManager>();
-		asteroidManager = std::make_unique<ObjectManager>();
+		gameObjects = std::make_unique<ObjectManager>();
 		systemManager = std::make_unique<SystemManager>();
 
 		//UI
 		uiControll = std::make_shared<UIControll>();
-		systemManager.get()->RegisterObjectOfSystem(
-			{	
-				SystemManager::RENDER_SYSTEM,
-				SystemManager::SHADER_SYSTEM,
-			}, uiControll);
+		//systemManager.get()->RegisterObjectOfSystem(uiControll);
 
-		uiControll->Init();
+		//uiControll->Init();
 
 		// PLAYER
-		player = std::make_shared<Player>(MyVector2{ SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f });
+		auto player = gameObjects.get()->CreateObject<Player>(MyVector2{ SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f });
+		auto playerFrame = gameObjects.get()->CreateObject<Frame>(player.get()->GetInstanceID());
 
-		systemManager.get()->RegisterObjectOfSystem(
-			{	
-				SystemManager::RENDER_SYSTEM,
-				SystemManager::MOVE_SYSTEM,
-				SystemManager::INPUT_SYSTEM,
-				SystemManager::CAMERA_SYSTEM,
-				SystemManager::ROTATION_SYSTEM,
-				SystemManager::SHADER_SYSTEM
-			}, player);
-
-		player.get()->Init();
+		systemManager.get()->RegisterObjectOfSystem(player);
+		systemManager.get()->RegisterObjectOfSystem(playerFrame);
 
 		// STAR
 		for (size_t i = 0; i < 200; i++)
 		{
-			std::shared_ptr<Star> star = starManager->CreateObject<Star>();
-
-			systemManager.get()->RegisterObjectOfSystem(
-				{	
-					SystemManager::RENDER_SYSTEM,
-					SystemManager::MOVE_SYSTEM,
-					SystemManager::STAR_EFFECT_SYSTEM,
-					SystemManager::WARP_SYSTEM,
-			}, star);
+			auto star = gameObjects.get()->CreateObject<Star>();
+			systemManager.get()->RegisterObjectOfSystem(star);
 		}
-		starManager->Init();
 
+		//asteroid
 		for (size_t i = 0; i < 10; i++)
 		{
-			std::shared_ptr<Asteroid> asteroid = asteroidManager->CreateObject<Asteroid>();
-
-			systemManager.get()->RegisterObjectOfSystem(
-				{
-						SystemManager::RENDER_SYSTEM,
-						SystemManager::MOVE_SYSTEM,
-						SystemManager::ROTATION_SYSTEM
-				}, asteroid);
+			auto asteroid = gameObjects.get()->CreateObject<Asteroid>();
+			systemManager.get()->RegisterObjectOfSystem(asteroid);
 		}
-		asteroidManager->Init();
 
+		gameObjects.get()->Init();
 		systemManager->Init();
 	}
 
@@ -83,11 +57,9 @@ namespace astro
 	{
 		while (!WindowShouldClose())
 		{
-			player->Update();
-			starManager->Update();
-			asteroidManager->Update();
-
+			gameObjects.get()->Update();
 			systemManager->Update();
+
 			systemManager->Draw();
 		}
 	}
