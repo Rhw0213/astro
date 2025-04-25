@@ -55,15 +55,18 @@ namespace astro
 
 	void Star::Update()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		MyVector2& position = transformComponent->position;
+		if (Object::IsEnable())
+		{
+			auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+			MyVector2& position = transformComponent->position;
 
-		Move();
+			Move();
 
-		Bound bound = CalculaterBoundLine();
-		IsLineOut isLineOut = CheckCameraRangeOut(bound, position);
-		
-		SetRandomPosition(bound, isLineOut, position);
+			Bound bound = CalculaterBoundLine();
+			IsLineOut isLineOut = CheckCameraRangeOut(bound, position);
+
+			SetRandomPosition(bound, isLineOut, position);
+		}
 	}
 
 	void Star::Move()
@@ -161,7 +164,7 @@ namespace astro
 		}
 	}
 
-	const MyVector2& Star::ViewScreenSize()
+	MyVector2 Star::ViewScreenSize()
 	{
 		const Camera2D& camera = CameraState::Instance().GetCamera();
 		const float& zoom = camera.zoom;
@@ -169,6 +172,6 @@ namespace astro
 		float viewWidth = SCREEN_WIDTH / zoom;
 		float viewHeight = SCREEN_HEIGHT / zoom;
 
-		return MyVector2{ viewWidth, viewHeight };
+		return { viewWidth, viewHeight };
 	}
 }

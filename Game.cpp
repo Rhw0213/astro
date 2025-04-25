@@ -2,6 +2,11 @@
 #include "Common.h"
 #include "raylib.h"
 #include "Frame.h"
+#include "FrameEffect.h"
+#include "Player.h"
+#include "Star.h"
+#include "Asteroid.h"
+#include "Setting.h"
 
 namespace astro
 {
@@ -9,6 +14,11 @@ namespace astro
 	{
 		InitWindow(astro::SCREEN_WIDTH, astro::SCREEN_HEIGHT, "Game");
 		SetTargetFPS(60);
+
+		if (!GameSettingManager::Instance().LoadFile())
+		{
+			return;
+		}
 	}
 
 	Game::~Game()
@@ -19,8 +29,8 @@ namespace astro
 	void Game::Init()
 	{
 		//Manager
-		gameObjects = std::make_unique<ObjectManager>();
-		systemManager = std::make_unique<SystemManager>();
+		objectManager = std::make_unique<ObjectManager>();
+		systemManager = std::make_unique<SystemManager>(objectManager);
 
 		//UI
 		uiControll = std::make_shared<UIControll>();
@@ -29,27 +39,33 @@ namespace astro
 		//uiControll->Init();
 
 		// PLAYER
-		auto player = gameObjects.get()->CreateObject<Player>(MyVector2{ SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f });
-		auto playerFrame = gameObjects.get()->CreateObject<Frame>(player.get()->GetInstanceID());
+		auto player = objectManager.get()->CreateObject<Player>(MyVector2{ SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f });
 
+		for (size_t i = 0; i < 10; i++)
+		{
+			auto frame = objectManager.get()->CreateObject<Frame>(player.get()->GetInstanceID());
+			systemManager.get()->RegisterObjectOfSystem(frame);
+		}
+		auto frameEffect = objectManager.get()->CreateObject<FrameEffect>(player.get()->GetType());
+
+		systemManager.get()->RegisterObjectOfSystem(frameEffect);
 		systemManager.get()->RegisterObjectOfSystem(player);
-		systemManager.get()->RegisterObjectOfSystem(playerFrame);
 
 		// STAR
-		for (size_t i = 0; i < 200; i++)
+		for (size_t i = 0; i < 300; i++)
 		{
-			auto star = gameObjects.get()->CreateObject<Star>();
+			auto star = objectManager.get()->CreateObject<Star>();
 			systemManager.get()->RegisterObjectOfSystem(star);
 		}
 
 		//asteroid
 		for (size_t i = 0; i < 10; i++)
 		{
-			auto asteroid = gameObjects.get()->CreateObject<Asteroid>();
+			auto asteroid = objectManager.get()->CreateObject<Asteroid>();
 			systemManager.get()->RegisterObjectOfSystem(asteroid);
 		}
 
-		gameObjects.get()->Init();
+		objectManager.get()->Init();
 		systemManager->Init();
 	}
 
@@ -57,7 +73,7 @@ namespace astro
 	{
 		while (!WindowShouldClose())
 		{
-			gameObjects.get()->Update();
+			objectManager.get()->Update();
 			systemManager->Update();
 
 			systemManager->Draw();

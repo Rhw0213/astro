@@ -1,10 +1,12 @@
 #pragma once
 #include "Common.h"
 #include <vector> 
+#include <map> 
 #include "raylib.h" 
 
 namespace astro
 {
+	class Object;
 	struct Component 
 	{ 
 	public:
@@ -120,7 +122,6 @@ namespace astro
 	{
 		RotationComponent(float angle = 0.f, float previousAngle = 0.f)
 			: angle{ angle }
-			, previousAngle{ previousAngle }
 		{ }
 
 		ComponentType GetType() override 
@@ -129,7 +130,6 @@ namespace astro
 		}
 
 		Angle angle = { 0.f };
-		Angle previousAngle = { 0.f };
 	};
 
 	struct WarpComponent : public Component
@@ -162,8 +162,13 @@ namespace astro
 	struct FrameComponent : public Component
 	{
 		FrameComponent(InstanceID target = 0)
-			: size{0.f,0.f,0.f,0.f}
+			: time(0)
+			, speed(100.f)
 			, target(target)
+			, rotationDirection(0)
+			, color{ 255,255,255,255 }
+			, enable(false)
+			, increaseSizeOffset(0)
 		{ }
 
 		ComponentType GetType() override 
@@ -171,10 +176,32 @@ namespace astro
 			return ComponentType::FRAME_COMPONENT;
 		}
 		
-		std::vector<MyVector2> positions;
-		MyVector2 direction;
-		Rectangle size;
+		float time = 0.f;
+		float speed = 0.f;
 		InstanceID target;
+		float rotationDirection;
+		Color color;
+		bool enable;
+		float increaseSizeOffset;
+	};
+
+	struct FrameEffectComponent : public Component
+	{
+		FrameEffectComponent(const ObjectType& frameOfObjectType)
+			: frameOfObjectType(frameOfObjectType)
+			, frameNowIndex(0)
+			, enableTrigerTime(0.f)
+		{ }
+
+		ComponentType GetType() override 
+		{ 
+			return ComponentType::FRAME_EFFECT_COMPONENT;
+		}
+
+		ObjectType frameOfObjectType;
+		std::vector<std::shared_ptr<Object>> frames;
+		int frameNowIndex = 0;
+		float enableTrigerTime = 0.f;
 	};
 	
 	struct ShaderComponent : public Component
@@ -245,5 +272,18 @@ namespace astro
 		int positionLoc = 0;
 		int directionLoc = 0;
 		int resolutionLoc = 0;
+	};
+
+	struct BulletComponent : public Component 
+	{
+		BulletComponent(InstanceID bulletOwner)
+			: bulletOwner(bulletOwner)
+		{ }
+
+		ComponentType GetType() override 
+		{ 
+			return ComponentType::BULLET_COMPONENT;
+		}
+		InstanceID bulletOwner;
 	};
 }

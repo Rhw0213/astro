@@ -33,16 +33,16 @@ namespace astro
 	{
 		for (const auto& object : objects)
 		{
-			if (object)
+			if (object && object.get()->IsEnable())
 			{
 				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
 				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
 
-				Camera2D& camera = cameraComponent->camera;
-				float& zoom = camera.zoom;
-				float targetZoom = cameraComponent->targetZoom;
-				float zoomSpeed = cameraComponent->zoomSpeed;
-				const MyVector2& position = transformComponent->position;
+				Camera2D& camera			= cameraComponent->camera;
+				float& zoom					= camera.zoom;
+				float targetZoom			= cameraComponent->targetZoom;
+				float zoomSpeed				= cameraComponent->zoomSpeed;
+				const MyVector2& position	= transformComponent->position;
 
 				camera.target = position;
 

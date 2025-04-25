@@ -7,10 +7,12 @@
 #include "WarpSystem.h"
 #include "RenderSystem.h"
 #include "FrameSystem.h"
+#include "FrameEffectSystem.h"
 
 namespace astro
 {
-	SystemManager::SystemManager()
+	SystemManager::SystemManager(std::shared_ptr<ObjectManager> objectManager)
+		: objectManager(objectManager)
 	{
 		RegisterSystem<InputSystem>(SystemID::INPUT_SYSTEM, std::make_shared<InputSystem>());
 		systemRequirement.insert({ SystemID::INPUT_SYSTEM,{
@@ -61,11 +63,19 @@ namespace astro
 									), RegisterLogic::ALL}
 		});
 
-		RegisterSystem<FrameSystem>(SystemID::FRAME_SYSTEM, std::make_shared<FrameSystem>());
+		RegisterSystem<FrameSystem>(SystemID::FRAME_SYSTEM, std::make_shared<FrameSystem>(objectManager));
 		systemRequirement.insert({ SystemID::FRAME_SYSTEM,{
 									static_cast< unsigned int >
 									(
-										ComponentType::FRAME_COMPONENT
+										ComponentType::FRAME_COMPONENT 
+									), RegisterLogic::ALL}
+		});
+
+		RegisterSystem<FrameEffectSystem>(SystemID::FRAME_EFFECT_SYSTEM, std::make_shared<FrameEffectSystem>(objectManager));
+		systemRequirement.insert({ SystemID::FRAME_EFFECT_SYSTEM,{
+									static_cast< unsigned int >
+									(
+										ComponentType::FRAME_EFFECT_COMPONENT
 									), RegisterLogic::ALL}
 		});
 
@@ -87,7 +97,7 @@ namespace astro
 		});
 	}
 
-	void SystemManager::RegisterObjectOfSystem(std::shared_ptr<GameObject> gameObject)
+	void SystemManager::RegisterObjectOfSystem(std::shared_ptr<Object> gameObject)
 	{
 		unsigned int gameObjectMask = gameObject.get()->GetComponentMask();
 		std::bitset<64> bits(gameObjectMask);
@@ -98,7 +108,7 @@ namespace astro
 
 			if (systemMask.registerLogic == RegisterLogic::ANY)
 			{
-				if (gameObjectMask & systemMask.mask)
+				if ((gameObjectMask & systemMask.mask) != 0)
 				{
 					isRegisterObject = true;
 				}
@@ -121,7 +131,6 @@ namespace astro
 				}
 			}
 		}
-
 	}
 
 	void SystemManager::Init()

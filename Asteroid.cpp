@@ -24,7 +24,6 @@ namespace astro
 		const MyVector2& direction = transformComponent->direction;
 
 		rotationComponent->angle = { atan2f(direction.y(), direction.x()) };
-		rotationComponent->previousAngle = rotationComponent->angle;
 
 		moveComponent->speed = Random::randAsteroidSpeed(Random::gen);
 
@@ -55,7 +54,7 @@ namespace astro
 		}
 
 		moveDirection = position.DirectionTo(randomPosition + position);
-		angle.radian += PI * GetFrameTime();
+		angle.radian = PI * GetFrameTime() * Random::randMinusToPlusFormOneFloat(Random::gen);
 		direction = {cosf(angle.radian), sinf(angle.radian)};
 	}
 
@@ -83,8 +82,8 @@ namespace astro
 			float vertexOffsetX = currentDistance * cosf(currentAngle);
 			float vertexOffsetY = currentDistance * sinf(currentAngle);
 
-			float x = position.x() + vertexOffsetX;
-			float y = position.y() + vertexOffsetY;
+			float x = vertexOffsetX;
+			float y = vertexOffsetY;
 
 			renderComponent->points.push_back({ x, y });
 

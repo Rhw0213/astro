@@ -19,5 +19,6 @@ namespace astro
         static std::uniform_real_distribution<float> randAsteroidSpeed;
         static std::uniform_real_distribution<float> randScreenX;
         static std::uniform_real_distribution<float> randScreenY;
+		static std::normal_distribution<float> distributionFrameRange;
     };
 }

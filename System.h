@@ -24,6 +24,7 @@ namespace astro
 				}
 			}
 
+			// findº¯°æ
 			objects.push_back(std::shared_ptr<Object>(object));
 		}
 	protected:

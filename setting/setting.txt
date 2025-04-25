@@ -1,0 +1,13 @@
+# Frame
+FrameLifeTime 0.3
+FrameSpeed 100
+FramePlayerSize 20 
+FrameTargetOffsetX 0
+FrameTargetOffsetY 25
+FrameIncreaseFrameDefaultSize -70 
+FrameIncreaseFrameWarpSize -100
+
+# Bullet
+BulletPlayerCount 100
+BulletSpeed 1000
+

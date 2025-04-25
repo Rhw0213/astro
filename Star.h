@@ -33,6 +33,6 @@ namespace astro
 		IsLineOut CheckCameraRangeOut(Bound bound, const MyVector2& position);
 		Bound CalculaterBoundLine();
 		void SetRandomPosition(Bound bound, IsLineOut isLineOut, MyVector2& position);
-		const MyVector2& ViewScreenSize();
+		MyVector2 ViewScreenSize();
 	};
 }

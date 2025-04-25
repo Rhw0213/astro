@@ -14,3 +14,4 @@ std::uniform_real_distribution<float> astro::Random::randAsteroidSize(30.f, 100.
 std::uniform_real_distribution<float> astro::Random::randAsteroidSpeed(100.f, 200.f);
 std::uniform_real_distribution<float> astro::Random::randScreenX(0, astro::SCREEN_WIDTH);
 std::uniform_real_distribution<float> astro::Random::randScreenY(0, astro::SCREEN_HEIGHT);
+std::normal_distribution<float> astro::Random::distributionFrameRange(0.f, 10.f);

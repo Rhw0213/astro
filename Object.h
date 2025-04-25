@@ -11,13 +11,19 @@ namespace astro
 	public:
 		Object()
 			: componentMask(0)
+			, enable(true)
 		{
 			instanceId = staticInstanceId++;
 		}
-		virtual ~Object() = default;
-		virtual ObjectType GetType() const = 0;
-		InstanceID GetInstanceID() const { return instanceId; };
-		unsigned int GetComponentMask() const{ return componentMask; };
+
+		virtual				~Object() = default;
+		virtual	ObjectType	GetType() const = 0;
+
+		InstanceID			GetInstanceID()					const { return instanceId;		};
+		unsigned int		GetComponentMask()				const { return componentMask;	};
+		bool				IsEnable()						const { return enable;			};
+
+		void				SetEnable(bool enable)				  { this->enable = enable;  };
 
 		void AddComponent(std::shared_ptr<Component> comp)
 		{
@@ -49,10 +55,10 @@ namespace astro
 		}
 
 	private:
-		static InstanceID staticInstanceId;
-		InstanceID instanceId = 0;
-		
-		unsigned int componentMask;
+		static InstanceID						staticInstanceId;
+		InstanceID								instanceId;
+		unsigned int							componentMask;
+		bool									enable;
 		std::vector<std::shared_ptr<Component>> components;
 	};
 }

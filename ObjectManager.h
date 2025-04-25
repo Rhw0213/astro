@@ -18,21 +18,30 @@ namespace astro
 
 			if (ptr)
 			{
-				gameObjects.insert( { ptr.get()->GetInstanceID(), ptr } );
+				objects.insert( { ptr.get()->GetInstanceID(), ptr } );
+
+				auto gameObject = std::dynamic_pointer_cast<GameObject>(ptr);
+				if (gameObject)
+				{ 
+					gameObjects.push_back(gameObject);
+				}
+
 				return ptr;
 			}
 
 			return ptr;
 		}
 
-		void InsertObject(std::shared_ptr<GameObject> gameObject);
-		std::shared_ptr<GameObject> GetGameObject(InstanceID instanceId);
+		//void InsertObject(std::shared_ptr<Object> gameObject);
+		std::shared_ptr<Object> GetObject(InstanceID instanceId);
+		std::vector<std::shared_ptr<Object>> GetObjects(ObjectType objectType);
 
 		void Init();
 		void Update();
 
 	private:
-		std::unordered_map<InstanceID, std::shared_ptr<GameObject>> gameObjects;
+		std::unordered_map<InstanceID, std::shared_ptr<Object>> objects;
+		std::vector<std::shared_ptr<GameObject>> gameObjects;
 	};
 
 }

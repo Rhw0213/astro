@@ -1,6 +1,7 @@
 #include "RenderSystem.h"
 #include "CameraState.h"
 #include "EventManager.h"
+#include "rlgl.h"
 
 namespace astro
 {
@@ -24,7 +25,7 @@ namespace astro
 			}
 		}
 
-		// Ä«¸Þ¶ó   ¿ÀºêÁ§Æ® Ã£±â
+		// Ä«ï¿½Þ¶ï¿½   ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® Ã£ï¿½ï¿½
 		for (const auto& object : objects)
 		{
 			if (object.get()->GetType() == ObjectType::PLAYER_ID)
@@ -43,32 +44,42 @@ namespace astro
 		//Camera
 		for (const auto& object: cameraObjects)
 		{
-			auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
-			if (cameraComponent)
+			if (object && object.get()->IsEnable())
 			{
-				Camera2D& camera = cameraComponent->camera;
-				BeginMode2D(camera);
+				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
+				if (cameraComponent)
+				{
+					Camera2D& camera = cameraComponent->camera;
+					BeginMode2D(camera);
+				}
 			}
 		}
 
 		for (const auto& object: objects)
 		{
-			if (object.get()->GetType() == ObjectType::CONTROLL_UI_ID)
+			if (object && object.get()->IsEnable())
 			{
-				continue;
-			}
+				if (object.get()->GetType() == ObjectType::CONTROLL_UI_ID)
+				{
+					continue;
+				}
 
-			//Object
-			if (object)
-			{
+				//Object
 				auto& points = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT)->points;
 				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+				auto* rotationComponent = object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
 
 				const MyVector2& direction = transformComponent->direction;
 				const MyVector2& position = transformComponent->position;
 				const float& size = transformComponent->size;
+				const Angle& angle = rotationComponent->angle;
 
 				size_t pointsSize = points.size();
+
+				if (pointsSize == 0)
+				{
+					ObjectType type = object->GetType();
+				}
 
 				if (object->GetType() == ObjectType::STAR_ID)
 				{
@@ -76,7 +87,7 @@ namespace astro
 					int bright = brightEffectComponent->bright;
 					float maxSize = brightEffectComponent->maxSize;
 					Color starColor = brightEffectComponent->color;
-					
+
 					enum DrawIndex
 					{
 						CIRCLE,
@@ -91,29 +102,37 @@ namespace astro
 						{
 							MyVector2 renderPosition = points[CIRCLE];
 							DrawCircle(static_cast<int>(renderPosition.x()),
-										static_cast<int>(renderPosition.y()), 
-										size, 
-										{ starColor.r, starColor.g, starColor.b, (unsigned char)bright });
+								static_cast<int>(renderPosition.y()),
+								size,
+								{ starColor.r, starColor.g, starColor.b, (unsigned char)bright });
 						}
 						else if (i == LINE)
 						{
-							//¼±±¾±â
 							float lineThickness = maxSize * 2.f;
-							DrawLineEx(points[i], points[i + 1], lineThickness, 
+							DrawLineEx(points[i], points[i + 1], lineThickness,
 								{ starColor.r, starColor.g, starColor.b, (unsigned char)bright });
 						}
 					}
-
 				}
-				else if (object.get()->GetType() == ObjectType::PLAYER_ID)
+				else if ((object.get()->GetType() == ObjectType::ASTEROID_ID) ||
+					(object.get()->GetType() == ObjectType::PLAYER_ID))
 				{
-					for (size_t i = 0; i < pointsSize; i++)
-					{
-						MyVector2& startPoint = points[i];
-						MyVector2& endPoint = points[(i + 1) % pointsSize];
+					rlPushMatrix();
 
-						DrawLineEx(startPoint, endPoint, 3.f, WHITE);
+					rlTranslatef(position.x(), position.y(), 0);
+					float rotationDegree = Angle::RadianToDegree(angle.radian);
+					rlRotatef(rotationDegree, 0, 0, 1);
+
+					MyVector2 p0 = points[0];
+					for (size_t i = 1; i < points.size() - 1; i++)
+					{
+						MyVector2 p1 = points[i];
+						MyVector2 p2 = points[i + 1];
+
+						DrawTriangle(p0, p2, p1, GRAY);
 					}
+
+					rlPopMatrix();
 
 					MyVector2 endPoint = position + direction * 100;
 
@@ -122,32 +141,42 @@ namespace astro
 						static_cast<int>(endPoint.x()),
 						static_cast<int>(endPoint.y()), YELLOW);
 				}
-				else if (object.get()->GetType() == ObjectType::ASTEROID_ID)
+				else if (object.get()->GetType() == ObjectType::FRAME_ID)
 				{
-					if (pointsSize > 3)
-					{
-						for (size_t i = 0; i < pointsSize - 1; i++) {
-							DrawLineEx(points[i], points[i + 1], 1.0f, WHITE);
-						}
-						DrawLineEx(points.back(), points[0], 1.0f, WHITE);
-					}
-					MyVector2 endPoint = position + direction * 100;
+					auto* transform = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+					auto* rotation = object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+					auto* frameComponent = object.get()->GetComponent<FrameComponent>(ComponentType::FRAME_COMPONENT);
 
-					DrawLine(static_cast<int>(position.x()),
-						static_cast<int>(position.y()),
-						static_cast<int>(endPoint.x()),
-						static_cast<int>(endPoint.y()), YELLOW);
+					if (transform && rotation && frameComponent)
+					{
+						Rectangle rec = { points[0].x(), points[0].y(), size, size };
+						Vector2 origin = { size / 2.0f, size / 2.0f };
+						Color color = frameComponent->color;
+
+						//DrawRectanglePro(rec, origin, Angle::RadianToDegree(angle.radian), color);
+						DrawCircle(static_cast<int>(points[0].x()), 
+									static_cast<int>(points[0].y()), size /2.f, color);
+
+						//MyVector2 endPoint = transform->position + transform->direction * 100;
+
+						//DrawLine(static_cast<int>(transform->position.x()),
+						//		 static_cast<int>(transform->position.y()),
+						//		 static_cast<int>(endPoint.x()),
+						//		 static_cast<int>(endPoint.y()), YELLOW);
+					}
 				}
 			}
 		}
 
-		//Ä«¸Þ¶ó ¸ðµå ³¡ 
 		EndMode2D();
 
 		// ui render
 		for (const auto& object : uiObjects)
 		{
-			object.get()->Draw();
+			if (object && object.get()->IsEnable())
+			{
+				object.get()->Draw();
+			}
 		}
 
 		EndTextureMode();

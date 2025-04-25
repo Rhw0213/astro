@@ -7,9 +7,10 @@ namespace astro
 	class FrameSystem : public System
 	{
 	public:
+		FrameSystem(std::shared_ptr<ObjectManager> objectManager);
 		void Init() override;
 		void Process() override;
 	private:
-		std::unique_ptr<ObjectManager> objectManager;
+		std::shared_ptr<ObjectManager> objectManager;
 	};
 }

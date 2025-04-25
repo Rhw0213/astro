@@ -1,6 +1,5 @@
-#include "Object.h" // Object.h 포함
-
+#include "Object.h"
 namespace astro
 {
     InstanceID Object::staticInstanceId = 1; 
-} // namespace astro 
+}

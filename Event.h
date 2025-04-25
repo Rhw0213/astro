@@ -9,12 +9,20 @@ namespace astro
 
 	struct WarpStartEvent : Event
 	{
-		WarpStartEvent() {};
+		WarpStartEvent(float increaseFrameSizeOffset = 0.f) 
+			: increaseFrameSizeOffset(increaseFrameSizeOffset)
+		{};
+
+		float increaseFrameSizeOffset;
 	};
 
 	struct WarpStopEvent : Event
 	{
-		WarpStopEvent() {};
+		WarpStopEvent(float increaseFrameSizeOffset = 0.f) 
+			: increaseFrameSizeOffset(increaseFrameSizeOffset)
+		{};
+
+		float increaseFrameSizeOffset;
 	};
 
 	struct CameraZoomEvent : Event

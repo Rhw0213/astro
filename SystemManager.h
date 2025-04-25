@@ -7,31 +7,32 @@
 #include "System.h" 
 #include "ShaderSystem.h" 
 #include "GameObject.h" 
+#include "ObjectManager.h" 
 
 namespace astro
 {
 	class SystemManager
 	{
 	public:
-		SystemManager();
+		SystemManager(std::shared_ptr<ObjectManager> objectManager);
 		~SystemManager() = default;
 	public:
 		enum class SystemID
 		{
-			INPUT_SYSTEM		, 
-			CAMERA_SYSTEM		, 
-			MOVE_SYSTEM			, 
-			BRIGHT_EFFECT_SYSTEM  , 
-			WARP_SYSTEM			, 
-			ROTATION_SYSTEM		, 
-			FRAME_SYSTEM		, 
+			INPUT_SYSTEM			, 
+			MOVE_SYSTEM				, 
+			BRIGHT_EFFECT_SYSTEM	, 
+			WARP_SYSTEM				, 
+			ROTATION_SYSTEM			, 
+			FRAME_SYSTEM			, 
+			FRAME_EFFECT_SYSTEM		, 
+			CAMERA_SYSTEM			, 
 			//¸¶Áö¸·
-			RENDER_SYSTEM		, 
-			SHADER_SYSTEM		,
-			COUNT
+			RENDER_SYSTEM			, 
+			SHADER_SYSTEM			,
 		};
 			
-		void RegisterObjectOfSystem(std::shared_ptr<GameObject> gameObject);
+		void RegisterObjectOfSystem(std::shared_ptr<Object> gameObject);
 
 		void Init();
 		void Update();
@@ -59,5 +60,6 @@ namespace astro
 	private:
 		std::map<SystemID, std::shared_ptr<System>> systems;
 		std::map<SystemID, Mask> systemRequirement;
+		std::shared_ptr<ObjectManager> objectManager;
 	};
 }

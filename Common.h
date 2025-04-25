@@ -3,6 +3,7 @@
 #include "Random.h"
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 namespace astro
 {
@@ -31,9 +32,11 @@ namespace astro
 		WARP_COMPONENT						= 1 << 7,
 		UI_COMPONENT						= 1 << 8,
 		FRAME_COMPONENT						= 1 << 9,
-		SHADER_COMPONENT					= 1 << 10,
-		SHADER_COLOR_DIFFUSION_COMPONENT	= 1 << 11,
-		SHADER_FRAME_COMPONENT				= 1 << 12
+		FRAME_EFFECT_COMPONENT				= 1 << 10,
+		BULLET_COMPONENT					= 1 << 11,
+		SHADER_COMPONENT					= 1 << 12, 
+		SHADER_COLOR_DIFFUSION_COMPONENT	= 1 << 13,
+		SHADER_FRAME_COMPONENT				= 1 << 14
 	};
 
 	inline ComponentType operator|(ComponentType a , ComponentType b)
@@ -53,11 +56,13 @@ namespace astro
 		//GameObject
 		GAMEOBJECT_ID,
 		PLAYER_ID,
+		BULLET_ID,
 		STAR_ID,
 		ASTEROID_ID,
 
 		//Effect
 		FRAME_ID,
+		FRAME_EFFECT_ID,
 
 		//UI
 		UI_ID,
@@ -159,5 +164,14 @@ namespace astro
 
 		float radian = 0.f;
 	};
+
+	static float Normalize(float value, float minVal, float maxVal)
+	{
+		float clampValue = std::clamp(value, minVal, maxVal);
+
+		float normalizedValue = (clampValue - minVal) / (maxVal - minVal);
+
+		return std::clamp(normalizedValue, 0.f, 1.f);
+	}
 }
 

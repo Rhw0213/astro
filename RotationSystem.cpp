@@ -1,4 +1,5 @@
 #include "RotationSystem.h"
+#include <iostream>
 
 namespace astro
 {
@@ -11,37 +12,40 @@ namespace astro
 	{
 		for (const auto& object : objects)
 		{
-			auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-			auto* rotationComponent = object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
-			auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-
-			const MyVector2& position = transformComponent->position;
-			float& currentAngle = rotationComponent->angle.radian;
-			float& previousAngle = rotationComponent->previousAngle.radian;
-			auto& points = renderComponent->points;
-
-			if (std::abs(currentAngle - previousAngle) > 1e-7f)
+			if (object && object.get()->IsEnable())
 			{
-				float deltaAngle = currentAngle - previousAngle;
-				
-				deltaAngle = atan2f(sinf(deltaAngle), cosf(deltaAngle));
+				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+				auto* rotationComponent = object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
 
-				float cosDelta = cosf(deltaAngle);
-				float sinDelta = sinf(deltaAngle);
+				MyVector2& direction = transformComponent->direction;
+				float& radian = rotationComponent->angle.radian;
 
-				for (auto& point : points)
-				{
-					float x = point.x() - position.x();
-					float y = point.y() - position.y();
+				radian = atan2f(direction.y(), direction.x());
+				//direction = MyVector2{cosf(radian), sinf(radian)};
 
-					float rotatedX = x * cosDelta - y * sinDelta;
-					float rotatedY = x * sinDelta + y * cosDelta;
+				//if (std::abs(currentAngle - previousAngle) > 1e-7f)
+				//{
+				//	float deltaAngle = currentAngle - previousAngle;
+				//	
+				//	deltaAngle = atan2f(sinf(deltaAngle), cosf(deltaAngle));
 
-					point.x() = position.x() + static_cast<float>(rotatedX);
-					point.y() = position.y() + static_cast<float>(rotatedY);
-				}
+				//	float cosDelta = cosf(deltaAngle);
+				//	float sinDelta = sinf(deltaAngle);
 
-				previousAngle = currentAngle;
+				//	for (auto& point : points)
+				//	{
+				//		float x = point.x() - position.x();
+				//		float y = point.y() - position.y();
+
+				//		float rotatedX = x * cosDelta - y * sinDelta;
+				//		float rotatedY = x * sinDelta + y * cosDelta;
+
+				//		point.x() = position.x() + static_cast<float>(rotatedX);
+				//		point.y() = position.y() + static_cast<float>(rotatedY);
+				//	}
+
+				//	previousAngle = currentAngle;
+				//}
 			}
 		}
 	}

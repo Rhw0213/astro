@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "EventManager.h"
 #include "Event.h"
+#include "Setting.h"
 
 namespace astro
 {
@@ -11,9 +12,11 @@ namespace astro
 
 	void InputSystem::Process()
 	{
+		auto& setting = GameSettingManager::Instance();
+
 		for (const auto& object: objects)
 		{
-			if (object && object.get()->GetType() == ObjectType::PLAYER_ID)
+			if (object && object.get()->IsEnable() && object.get()->GetType() == ObjectType::PLAYER_ID)
 			{
 				auto* moveComponent = object.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
 				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
@@ -70,12 +73,12 @@ namespace astro
 
 					if (IsKeyReleased(KEY_SPACE))
 					{
-						EventManager::Instance().RunEvent<WarpStopEvent>(WarpStopEvent());
+						EventManager::Instance().RunEvent<WarpStopEvent>(WarpStopEvent(setting.frameIncreaseFrameDefaultSize));
 					}
 					
 					if (IsKeyPressed(KEY_SPACE))
 					{
-						EventManager::Instance().RunEvent<WarpStartEvent>(WarpStartEvent());
+						EventManager::Instance().RunEvent<WarpStartEvent>(WarpStartEvent(setting.frameIncreaseFrameWarpSize));
 					}
 
 					moveDirection = move;

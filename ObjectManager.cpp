@@ -2,16 +2,16 @@
 
 namespace astro
 {
-	void ObjectManager::InsertObject(std::shared_ptr<GameObject> gameObject)
-	{
-		gameObjects.insert( {gameObject.get()->GetInstanceID(), gameObject});
-	}
+	//void ObjectManager::InsertObject(std::shared_ptr<Object> object)
+	//{
+	//	objects.insert( {object.get()->GetInstanceID(), object});
+	//}
 
-	std::shared_ptr<GameObject> ObjectManager::GetGameObject(InstanceID instanceId)
+	std::shared_ptr<Object> ObjectManager::GetObject(InstanceID instanceId)
 	{
-		auto it = gameObjects.find(instanceId);
+		auto it = objects.find(instanceId);
 
-		if ( it != gameObjects.end() )
+		if ( it != objects.end() )
 		{
 			return it->second;
 		}
@@ -19,9 +19,24 @@ namespace astro
 		return nullptr;
 	}
 
+	std::vector<std::shared_ptr<Object>> ObjectManager::GetObjects(ObjectType objectType)
+	{
+		std::vector<std::shared_ptr<Object>> finedObjects;
+
+		for (const auto& [_, object] : objects)
+		{
+			if (object.get()->GetType() == objectType)
+			{
+				finedObjects.push_back(object);
+			}
+		}
+
+		return finedObjects;
+	}
+
 	void ObjectManager::Init()
 	{
-		for (const auto& [objectId, object] : gameObjects)
+		for (const auto& object : gameObjects)
 		{
 			object.get()->Init();
 		}
@@ -29,7 +44,7 @@ namespace astro
 
 	void ObjectManager::Update()
 	{
-		for (const auto& [objectId, object] : gameObjects)
+		for (const auto& object : gameObjects)
 		{
 			object.get()->Update();
 		}

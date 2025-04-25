@@ -60,10 +60,13 @@ namespace astro
 		{
 			std::shared_ptr<Object> object = objectAndShader.object;
 
-			for (const auto& shaderEffect : objectAndShader.shaders)
+			if (object && object.get()->IsEnable())
 			{
-				shaderEffect.get()->Update(object, *inputTexture, *outputTexture);
-				std::swap(inputTexture, outputTexture);
+				for (const auto& shaderEffect : objectAndShader.shaders)
+				{
+					shaderEffect.get()->Update(object, *inputTexture, *outputTexture);
+					std::swap(inputTexture, outputTexture);
+				}
 			}
 		}
 

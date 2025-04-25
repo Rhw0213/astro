@@ -1,7 +1,4 @@
 #pragma once
-#include "Player.h"
-#include "Star.h"
-#include "Asteroid.h"
 #include "ObjectManager.h"
 #include "SystemManager.h"
 #include "UIControll.h"
@@ -18,11 +15,8 @@ namespace astro
 		void Run();
 
 	private:
-		//std::shared_ptr<Player> player;
-		//std::unique_ptr<ObjectManager> starManager;
-		//std::unique_ptr<ObjectManager> asteroidManager;
 
-		std::unique_ptr<ObjectManager> gameObjects;
+		std::shared_ptr<ObjectManager> objectManager;
 
 		std::shared_ptr<UIControll> uiControll;
 

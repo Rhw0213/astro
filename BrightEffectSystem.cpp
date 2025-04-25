@@ -12,7 +12,7 @@ namespace astro
     {
         for (const auto& object : objects)
         {
-            if (object)
+            if (object && object.get()->IsEnable())
             {
                 auto* effectComponent = object.get()->GetComponent<BrightEffectComponent>(ComponentType::BRIGHT_EFFECT_COMPONENT);
                 auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
