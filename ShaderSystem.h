@@ -5,6 +5,7 @@
 
 namespace astro
 {
+/// @brief ShaderSystem
 	class ShaderSystem : public System
 	{
 	public:
@@ -16,6 +17,7 @@ namespace astro
 		void FindObjectAndSetShader(std::shared_ptr<Object> object, std::shared_ptr<ShaderEffect> shaderEffect);
 
 	private:
+/// @brief ObjectAndShader
 		struct ObjectAndShader
 		{
 			std::shared_ptr<Object> object;

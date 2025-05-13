@@ -3,6 +3,7 @@
 
 namespace astro
 {
+/// @brief WarpSystem
 	class WarpSystem : public System
 	{
 	public:

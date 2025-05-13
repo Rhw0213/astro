@@ -5,6 +5,7 @@
 
 namespace astro
 {
+/// @brief ShaderEffect
 	class ShaderEffect : public Object
 	{
 	public:

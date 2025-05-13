@@ -1,13 +1,23 @@
+# Player
+PlayerSize 30 
+
 # Frame
-FrameLifeTime 0.3
-FrameSpeed 100
-FramePlayerSize 20 
+FrameLifeTime 0.3 
+FrameSponTime 0.01
+FrameSpeed 300
+FrameSize 20 
+FrameWarpSize 50
+FrameEnableTrigerMaxTime 0.01
 FrameTargetOffsetX 0
 FrameTargetOffsetY 25
-FrameIncreaseFrameDefaultSize -70 
-FrameIncreaseFrameWarpSize -100
 
 # Bullet
 BulletPlayerCount 100
 BulletSpeed 1000
 
+# Warp
+WarpStarTailLength 20
+
+# Star
+MinStarSize 1
+MaxStarSize 2 

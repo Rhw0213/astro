@@ -1,49 +1,46 @@
 #include "Asteroid.h"
 #include "Component.h"
+#include "ComponentManager.h"
 
 namespace astro
 {
-	Asteroid::Asteroid(const MyVector2& position)
+	Asteroid::Asteroid(InstanceID parentId)
 	{
-		Object::AddComponent(std::make_shared<TransformComponent>(position));
-		Object::AddComponent(std::make_shared<RenderComponent>());
-		Object::AddComponent(std::make_shared<MoveComponent>());
-		Object::AddComponent(std::make_shared<RotationComponent>());
+		componentMask = static_cast<uint64_t>(
+			ComponentType::TRANSFORM_COMPONENT |
+			ComponentType::MOVE_COMPONENT |
+			ComponentType::RENDER_COMPONENT 
+			);
 	}
 
 	void Asteroid::Init()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+		auto& CM		= ComponentManager::Instance();
 
-		transformComponent->size = Random::randAsteroidSize(Random::gen);
-		transformComponent->position = { Random::randScreenX(Random::gen), Random::randScreenY(Random::gen)};
-		transformComponent->direction = MyVector2{ Random::randZeroToOneFloat(Random::gen), Random::randZeroToOneFloat(Random::gen)}.Normalize();
+		auto* transformComponent			= CM.GetComponent<TransformComponent>	(componentMask, instanceId);
+		auto* moveComponent					= CM.GetComponent<MoveComponent>		(componentMask, instanceId);
 
-		const MyVector2& direction = transformComponent->direction;
-
-		rotationComponent->angle = { atan2f(direction.y(), direction.x()) };
-
-		moveComponent->speed = Random::randAsteroidSpeed(Random::gen);
+		transformComponent->localScale		= Random::randAsteroidSize(Random::gen);
+		transformComponent->localPosition	= { Random::randScreenX(Random::gen), Random::randScreenY(Random::gen)};
+		moveComponent->speed				= Random::randAsteroidSpeed(Random::gen);
 
 		SetVertex();
 	}
 
 	void Asteroid::Update()
 	{
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-		auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+		auto& CM		= ComponentManager::Instance();
 
-		const MyVector2& position = transformComponent->position;
-		MyVector2& direction = transformComponent->direction;
-		MyVector2& moveDirection = moveComponent->direction;
-		Angle& angle = rotationComponent->angle;
+		auto* transformComponent			= CM.GetComponent<TransformComponent>	(componentMask, instanceId);
+		auto* moveComponent					= CM.GetComponent<MoveComponent>		(componentMask, instanceId);
+
+		const MyVector2&	localPosition	= transformComponent->localPosition;
+		Angle&				localRotation	= transformComponent->localRotation;
+		MyVector2&			moveDirection	= moveComponent->direction;
 
 		MyVector2 randomPosition = { 
-			static_cast<float>(perlinNoise.noise(position.x(), 0)),
-			static_cast<float>(perlinNoise.noise(0, position.y()))
+			static_cast<float>(perlinNoise.noise(localPosition.x(), 0)),
+			static_cast<float>(perlinNoise.noise(0, localPosition.y()))
 		};
 
 		// ?
@@ -53,21 +50,20 @@ namespace astro
 			randomPosition.y() = Random::randMinusToPlusFormOneFloat(Random::gen);
 		}
 
-		moveDirection = position.DirectionTo(randomPosition + position);
-		angle.radian = PI * GetFrameTime() * Random::randMinusToPlusFormOneFloat(Random::gen);
-		direction = {cosf(angle.radian), sinf(angle.radian)};
+		moveDirection = localPosition.DirectionTo(randomPosition + localPosition);
+		localRotation.radian = PI * GetFrameTime() * Random::randMinusToPlusFormOneFloat(Random::gen);
 	}
 
 	void Asteroid::SetVertex()
 	{
-		auto* renderComponent = Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-		auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto& CM		= ComponentManager::Instance();
 
-		const float& size = transformComponent->size;
-		const MyVector2 position = transformComponent->position;
+		auto* renderComponent			= CM.GetComponent<RenderComponent>(componentMask, instanceId);
+		auto* transformComponent		= CM.GetComponent<TransformComponent>(componentMask, instanceId);
 
-		int countVertex = Random::randAsteroidVertex(Random::gen);
+		const float&	localScale		= transformComponent->localScale;
 
+		int	countVertex = Random::randAsteroidVertex(Random::gen);
 		float angleStep = 2.f * PI / countVertex;
 		float baseAngle = 0.f;
 
@@ -77,7 +73,7 @@ namespace astro
 			float currentAngle = baseAngle + angleOffset;
 
 			float distanceFactor = 0.5f + Random::randZeroToOneFloat(Random::gen) * 0.7f; // 0.5~1.2
-			float currentDistance = size * distanceFactor;
+			float currentDistance = localScale * distanceFactor;
 
 			float vertexOffsetX = currentDistance * cosf(currentAngle);
 			float vertexOffsetY = currentDistance * sinf(currentAngle);

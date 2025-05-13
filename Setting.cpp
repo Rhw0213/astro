@@ -35,17 +35,26 @@ namespace astro
 			if (streamLine >> key >> value)
 			{
 				//Frame
-				if (key == "FrameLifeTime")								{ frameLifeTime					= value; }
-				else if (key == "FrameSpeed")							{ frameSpeed					= value; }
-				else if (key == "FramePlayerSize")						{ framePlayerSize				= value; }
-				else if (key == "FrameTargetOffsetX")					{ frameTargetOffsetX			= value; }
-				else if (key == "FrameTargetOffsetY")					{ frameTargetOffsetY			= value; }
-				else if (key == "FrameIncreaseFrameDefaultSize")		{ frameIncreaseFrameDefaultSize = value; }
-				else if (key == "FrameIncreaseFrameWarpSize")			{ frameIncreaseFrameWarpSize	= value; }
+				if (key == "FrameLifeTime")							{ frameLifeTime					= value; }
+				else if (key == "FrameSpeed")						{ frameSpeed					= value; }
+				else if (key == "FrameSize")						{ frameSize						= value; }
+				else if (key == "FrameEnableTrigerMaxTime")			{ frameEnableTrigerMaxTime		= value; }
+				else if (key == "FrameTargetOffsetX")				{ frameTargetOffsetX			= value; }
+				else if (key == "FrameTargetOffsetY")				{ frameTargetOffsetY			= value; }
 
-				//PlayerBullet
-				else if (key == "BulletPlayerCount")					{ bulletPlayerCount				= value; }
-				else if (key == "BulletSpeed")							{ bulletSpeed					= value; }
+				//PlayerMissile
+				else if (key == "MissilePlayerCount")				{ bulletPlayerCount				= value; }
+				else if (key == "MissileSpeed")						{ bulletSpeed					= value; }
+
+				//Warp
+				else if (key == "WarpStarTailLength")				{ warpStarTailLength			= value; }
+				else if (key == "MinStarSize")						{ minStarSize					= value; }
+				else if (key == "MaxStarSize")						{ maxStarSize					= value; }
+				else if (key == "PlayerSize")						{ playerSize					= value; }
+				else if (key == "FrameWarpSize")					{ frameWarpSize					= value; }
+				else if (key == "FrameSponTime")					{ frameSponTime					= value; }
+
+			}
 		}
 
 		file.close();

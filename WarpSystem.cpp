@@ -3,86 +3,125 @@
 #include "EventManager.h"
 #include "Event.h"
 #include "PlayerState.h"
+#include "Setting.h"
+#include "ComponentManager.h"
 
 namespace astro
 {
     void WarpSystem::Init()
     {
-        for (const auto& object : objects)
-        {
-            EventManager::Instance().RegisterEvent<WarpStartEvent>([&](const WarpStartEvent* e)
-                {
-                    auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-                    auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-                    auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
+		EventManager::Instance().RegisterEvent<WarpStartEvent>([](const WarpStartEvent* e) {
+			auto& setting = GameSettingManager::Instance();
+			auto& CM = ComponentManager::Instance();
 
-                    auto& points = renderComponent->points;
-                    float size = transformComponent->size;
-                    bool& isWarp = warpComponent->isWarp;
+			auto archetypes = CM.GetArchetypeQuery(
+				static_cast<uint64_t>(ComponentType::RENDER_COMPONENT |
+										ComponentType::TRANSFORM_COMPONENT |
+										ComponentType::WARP_COMPONENT)
+			);
 
-                    MyVector2 effectDirection =
-                        PlayerState::Instance()
-                        .GetPlayer()
-                        .get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT)->direction;
-                    effectDirection *= -1.0f;
+			for (auto& archetype: archetypes)
+			{
+				auto* renderComponents = archetype->GetComponents<RenderComponent>();
+				auto* transformComponents = archetype->GetComponents<TransformComponent>();
+				auto* warpComponents = archetype->GetComponents<WarpComponent>();
 
-                    MyVector2 effectLine = effectDirection * 2.f;
-                    MyVector2 startPoint = transformComponent->position;
-                    MyVector2 endPoint = startPoint + effectLine;
+				if (renderComponents && transformComponents && warpComponents)
+				{
+					for (size_t i = 0; i < archetype->objectCount; i++)
+					{
+						auto& renderComponent = renderComponents[i];
+						auto& transformComponent = transformComponents[i];
+						auto& warpComponent = warpComponents[i];
 
-                    points.push_back(startPoint);
-                    points.push_back(endPoint);
+						auto& renderPoints = renderComponent.points;
+						bool& isWarp = warpComponent.isWarp;
+						float localScale = transformComponent.localScale;
 
-                    isWarp = true;
-                }
-            );
+						uint64_t playerMask = PlayerState::Instance().GetPlayer()->GetComponentMask();
+						InstanceID playerInstanceId = PlayerState::Instance().GetPlayer()->GetInstanceID();
 
-            EventManager::Instance().RegisterEvent<WarpStopEvent>([&](const WarpStopEvent* e) {
-                auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
-                warpComponent->isWarp = false;
-            });
-        }
+						const Angle& localRotation = CM.GetComponent<TransformComponent>(playerMask, playerInstanceId)->localRotation;
+						MyVector2		effectDirection = { -cosf(localRotation.radian), -sinf(localRotation.radian) };
+						MyVector2		effectLine = effectDirection.Normalize() * 2.f;
+
+						renderPoints.push_back({ 0,0 });
+						renderPoints.push_back(effectLine * localScale * setting.warpStarTailLength);
+
+						isWarp = true;
+					}
+				}
+			}
+		});
+
+		EventManager::Instance().RegisterEvent<WarpStopEvent>([](const WarpStopEvent* e) {
+			auto& CM = ComponentManager::Instance();
+			auto archetypes = CM.GetArchetypeQuery(
+				static_cast<uint64_t>(ComponentType::WARP_COMPONENT)
+			);
+
+			for (auto& archetype: archetypes)
+			{
+				auto* warpComponents = archetype->GetComponents<WarpComponent>();
+
+				for (size_t i = 0; i < archetype->objectCount; i++)
+				{ 
+					auto& warpComponent = warpComponents[i];
+					warpComponent.isWarp = false;
+				}
+			}
+		});
     }
 
     void WarpSystem::Process()
 	{
-        for (const auto& object : objects)
+		auto& CM = ComponentManager::Instance();
+
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t>(ComponentType::RENDER_COMPONENT |
+									ComponentType::TRANSFORM_COMPONENT |
+									ComponentType::WARP_COMPONENT)
+		);
+
+        for (auto& archetype: archetypes)
         {
-			if (object && object.get()->IsEnable())
+			auto* renderComponents = archetype->GetComponents<RenderComponent>();
+			auto* transformComponents = archetype->GetComponents<TransformComponent>();
+			auto* warpComponents = archetype->GetComponents<WarpComponent>();
+
+			if (renderComponents && transformComponents && warpComponents)
 			{
-				auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-				auto* warpComponent = object.get()->GetComponent<WarpComponent>(ComponentType::WARP_COMPONENT);
-
-				auto& points = renderComponent->points;
-				float size = transformComponent->size;
-				bool isWarp = warpComponent->isWarp;
-
-				if (object && renderComponent && transformComponent)
+				for (size_t i = 0; i < archetype->objectCount; i++)
 				{
+					auto& renderComponent = renderComponents[i];
+					auto& transformComponent = transformComponents[i];
+					auto& warpComponent = warpComponents[i];
+
+					auto&	renderPoints	= renderComponent.points;
+					float	localScale		= transformComponent.localScale;
+					bool	isWarp			= warpComponent.isWarp;
+
 					if (isWarp)
 					{
 						EventManager::Instance().RunEvent(CameraZoomEvent(0.7f, 0.02f));
 
-						float distance = points[1].Distance(points[2]);
-						MyVector2 pointTwoDirection = points[1].DirectionTo(points[2]);
+						float distance = renderPoints[1].Distance(renderPoints[2]);
 
-						if (distance < size * 30.f)
+						if (distance < localScale * 3.f)
 						{
-							points[2] += pointTwoDirection * size * 2.f;
+							//renderPoints[2] *= 1.01f;
 						}
 					}
-					else if (!isWarp && points.size() >= 3)
+					else if (!isWarp && renderPoints.size() >= 3)
 					{
-						float distance = points[1].Distance(points[2]);
-						MyVector2 pointOneDirection = points[2].DirectionTo(points[1]);
-						points[2] += (pointOneDirection * 3.f);
+						float distance = renderPoints[1].Distance(renderPoints[2]);
+						renderPoints[2] *= 0.9f;
 
 						if (distance < 3.f)
 						{
-							const MyVector2& point = points[0];
-							points.clear();
-							points.push_back(point);
+							renderPoints.clear();
+
+							renderPoints.push_back({ 0, 0 });
 							EventManager::Instance().RunEvent(CameraZoomEvent(1.f, 0.02f));
 						}
 					}

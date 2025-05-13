@@ -1,44 +1,56 @@
 #include "Player.h"
 #include "Component.h"
+#include "ComponentManager.h"
 #include "PlayerState.h"
+#include "CameraState.h"
+#include "Setting.h"
 #include <cmath> 
+#include <iostream> 
 
 namespace astro
 {
 	Player::Player(const MyVector2& position)
 	{
-		Object::AddComponent(std::make_shared<TransformComponent>(position));
-		Object::AddComponent(std::make_shared<RotationComponent>());
-		Object::AddComponent(std::make_shared<RenderComponent>());
-		Object::AddComponent(std::make_shared<InputComponent>());
-		Object::AddComponent(std::make_shared<MoveComponent>());
-		Object::AddComponent(std::make_shared<CameraComponent>());
+		componentMask = static_cast<uint64_t>(
+			ComponentType::ACTIVE_COMPONENT |
+			ComponentType::TRANSFORM_COMPONENT |
+			ComponentType::RENDER_COMPONENT |
+			ComponentType::INPUT_COMPONENT |
+			ComponentType::MOVE_COMPONENT |
+			ComponentType::CAMERA_COMPONENT
+			);
 	}
 
 	void Player::Init()
-	{
-		auto* renderComponent		= Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-		auto* transformComponent	= Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		auto* rotationComponent		= Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
-		auto& camera				= Object::GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT)->camera;
+	{                 
+		auto& setting	= GameSettingManager::Instance();
+		auto& CM		= ComponentManager::Instance();
 
-		if (transformComponent && renderComponent && rotationComponent)
+		auto* renderComponent		= CM.GetComponent<RenderComponent>(componentMask, instanceId);
+		auto* transformComponent	= CM.GetComponent<TransformComponent>(componentMask, instanceId);
+		auto& camera				= CM.GetComponent<CameraComponent>(componentMask, instanceId)->camera;
+
+		if (transformComponent && renderComponent)
 		{
-			transformComponent->size = 25;
+			transformComponent->localScale = 1;
 			renderComponent->points.reserve(3);
 
-			const auto&	direction	= transformComponent->direction.Normalize();
-			const auto&	position	= transformComponent->position;
-			auto&		points		= renderComponent->points;
-			float		size		= transformComponent->size;
-			Angle		angle		= rotationComponent->angle;
+			const MyVector2&	worldPosition	= transformComponent->worldPosition;
+			const Angle&		localRotation	= transformComponent->localRotation;
+			float				localScale		= transformComponent->localScale;
+
+			auto&				points			= renderComponent->points;
+			auto&				objectType		= renderComponent->objectType;
 
 			const float deg_to_rad = PI / 180.0f;
 
+			float playerSize = setting.playerSize;
+
 			//render
-			points.push_back(MyVector2{ size * std::cosf(angle.radian), size * std::sinf(angle.radian) });
-			points.push_back(MyVector2{ size * std::cosf(angle.radian + 120.0f * deg_to_rad), size * std::sinf(angle.radian + 120.0f * deg_to_rad) });
-			points.push_back(MyVector2{ size * std::cosf(angle.radian+ 240.0f * deg_to_rad), size * std::sinf(angle.radian + 240.0f * deg_to_rad) });
+			objectType = ObjectType::PLAYER_ID;
+			points.push_back(MyVector2{ playerSize * std::cosf(localRotation.radian), playerSize * std::sinf(localRotation.radian) });
+			points.push_back(MyVector2{ playerSize * std::cosf(localRotation.radian + 120.0f * deg_to_rad), playerSize * std::sinf(localRotation.radian + 120.0f * deg_to_rad) });
+			points.push_back(MyVector2{ playerSize * std::cosf(localRotation.radian+ 240.0f * deg_to_rad), playerSize * std::sinf(localRotation.radian + 240.0f * deg_to_rad) });
 
 			//shader
 			//auto& shaderName = shaderComponent;
@@ -48,7 +60,7 @@ namespace astro
 			//camera
 			camera.offset = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 			camera.rotation = 0.f;
-			camera.target = position;
+			camera.target = worldPosition;
 			camera.zoom = 1.f;
 		}
 
@@ -58,6 +70,5 @@ namespace astro
 	void Player::Update()
 	{
 		PlayerState::Instance().Update(shared_from_this());
-
 	}
 }

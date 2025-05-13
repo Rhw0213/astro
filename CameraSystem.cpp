@@ -2,57 +2,89 @@
 #include "CameraState.h"
 #include "Component.h"
 #include "EventManager.h"
+#include "ComponentManager.h"
+#include "PlayerState.h"
 
 namespace astro
 {
 	void CameraSystem::Init()
 	{
-		for (const auto& object : objects)
-		{
-			if (object)
-			{
-				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
-				Camera2D& camera = cameraComponent->camera;
-				float& targetZoom = cameraComponent->targetZoom;
-				
-				targetZoom = camera.zoom;
+		auto& CM = ComponentManager::Instance();
 
-				EventManager::Instance().RegisterEvent<CameraZoomEvent>([&](const CameraZoomEvent* e) {
-					auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
-					float& targetZoom = cameraComponent->targetZoom;
-					float& zoomSpeed = cameraComponent->zoomSpeed;
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t>(ComponentType::CAMERA_COMPONENT)
+		);
 
-					targetZoom = e->targetZoom;
-					zoomSpeed = e->zoomSpeed;
-				});
+		for (auto* archetype : archetypes)
+		{ 
+			auto* cameraComponents = archetype->GetComponents<CameraComponent>();
+
+			if (cameraComponents)
+			{ 
+				for (size_t i = 0; i < archetype->objectCount; i++)
+				{ 
+					auto& cameraComponent = cameraComponents[i];
+
+					Camera2D& camera = cameraComponent.camera;
+					float& targetZoom = cameraComponent.targetZoom;
+					
+					targetZoom = camera.zoom;
+
+					EventManager::Instance().RegisterEvent<CameraZoomEvent>([&](const CameraZoomEvent* e) {
+
+						//?
+						InstanceID instanceId = PlayerState::Instance().GetPlayer().get()->GetInstanceID();
+						uint64_t componentMask = PlayerState::Instance().GetPlayer().get()->GetComponentMask();
+
+						auto* cameraComponent = CM.GetComponent<CameraComponent>(componentMask, instanceId);
+						float& targetZoom = cameraComponent->targetZoom;
+						float& zoomSpeed = cameraComponent->zoomSpeed;
+
+						targetZoom = e->targetZoom;
+						zoomSpeed = e->zoomSpeed;
+					});
+				}
 			}
 		}
 	}
 
 	void CameraSystem::Process()
 	{
-		for (const auto& object : objects)
-		{
-			if (object && object.get()->IsEnable())
-			{
-				auto* cameraComponent = object.get()->GetComponent<CameraComponent>(ComponentType::CAMERA_COMPONENT);
-				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto& CM = ComponentManager::Instance();
 
-				Camera2D& camera			= cameraComponent->camera;
-				float& zoom					= camera.zoom;
-				float targetZoom			= cameraComponent->targetZoom;
-				float zoomSpeed				= cameraComponent->zoomSpeed;
-				const MyVector2& position	= transformComponent->position;
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t> (ComponentType::TRANSFORM_COMPONENT | 
+									ComponentType::CAMERA_COMPONENT)
+		);
 
-				camera.target = position;
+		for (auto* archetype : archetypes)
+		{ 
+			auto* cameraComponents = archetype->GetComponents<CameraComponent>();
+			auto* transformComponents = archetype->GetComponents<TransformComponent>();
 
-				if (std::abs(zoom - targetZoom) > 0.02f)
-				{
-					zoomSpeed = targetZoom - zoom > 0 ? zoomSpeed : -zoomSpeed;
-					zoom += zoomSpeed;
+			if (cameraComponents && transformComponents)
+			{ 
+				for (size_t i = 0; i < archetype->objectCount; i++)
+				{ 
+					auto& cameraComponent = cameraComponents[i];
+					auto& transformComponent = transformComponents[i];
+
+					Camera2D& camera				= cameraComponent.camera;
+					float& zoom						= camera.zoom;
+					float targetZoom				= cameraComponent.targetZoom;
+					float zoomSpeed					= cameraComponent.zoomSpeed;
+					const MyVector2& localPosition	= transformComponent.localPosition;
+
+					camera.target = localPosition;
+
+					if (std::abs(zoom - targetZoom) > 0.02f)
+					{
+						zoomSpeed = targetZoom - zoom > 0 ? zoomSpeed : -zoomSpeed;
+						zoom += zoomSpeed;
+					}
+
+					CameraState::Instance().Update(camera);
 				}
-
-				CameraState::Instance().Update(camera);
 			}
 		}
 	}

@@ -7,6 +7,8 @@
 namespace astro
 {
 	class Object;
+
+/// @brief Component
 	struct Component 
 	{ 
 	public:
@@ -14,48 +16,76 @@ namespace astro
 		virtual ~Component() = default; 
 	};
 
-	struct TransformComponent : public Component
+/// @brief Component
+	struct ActiveComponent  
+	{ 
+	public:
+		ComponentType GetType() 
+		{ 
+			return ComponentType::ACTIVE_COMPONENT;
+		}
+
+		bool enable = true;
+	};
+
+/// @brief TransformComponent
+	struct TransformComponent 
 	{
-		TransformComponent(const MyVector2& position = {0, 0}, const MyVector2& direction = {0, 0}, const float& size = 1.f)
-			: position(position)
-			, direction(direction)
-			, size(size)
+		TransformComponent(InstanceID parentId = 0)
+			: parentId(parentId)
+			, worldPosition{ 0, 0 }
+			, worldScale(1.f)
+			, localPosition{ 0, 0 }
+			, localScale(1.f)
+			, frameUpdateNumber(0)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::TRANSFORM_COMPONENT;
 		}
 
-		MyVector2 position{ 0, 0 };
-		MyVector2 direction{ 0, 0 };
-		float size = 0;
+		InstanceID parentId;
+
+		MyVector2 worldPosition{ 0, 0 };
+		Angle worldRotation;
+		float worldScale = 0;
+
+		MyVector2 localPosition{ 0, 0 };
+		Angle localRotation;
+		float localScale = 0;
+		
+		int frameUpdateNumber = 0;
 	};
 
-	struct RenderComponent : public Component
+/// @brief RenderComponent
+	struct RenderComponent  
 	{
 		RenderComponent()
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::RENDER_COMPONENT;
 		}
 
 		std::vector<MyVector2> points;
+		ObjectType objectType = ObjectType::NONE;
 	};
 
-	struct InputComponent : public Component
+/// @brief InputComponent
+	struct InputComponent 
 	{
 		InputComponent() { }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::INPUT_COMPONENT;
 		}
 	};
 
-	struct MoveComponent : public Component
+/// @brief MoveComponent
+	struct MoveComponent  
 	{
 		MoveComponent(const MyVector2& direction = { 0, 0 }, const float& speed = 0.f, const MyVector2& slowVelocity = { 0, 0 })
 			: direction(direction)
@@ -63,7 +93,7 @@ namespace astro
 			, slowVelocity(slowVelocity)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::MOVE_COMPONENT;
 		}
@@ -73,7 +103,8 @@ namespace astro
 		float speed = 0.f;
 	};
 
-	struct BrightEffectComponent : public Component
+/// @brief BrightEffectComponent
+	struct BrightEffectComponent 
 	{
 		BrightEffectComponent(int bright = 0.f, float twinkle = 0.f)
 			: bright(bright)
@@ -84,7 +115,7 @@ namespace astro
 			, color(WHITE)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::BRIGHT_EFFECT_COMPONENT;
 		}
@@ -97,7 +128,8 @@ namespace astro
 		Color color = WHITE;
 	};
 
-	struct CameraComponent : public Component
+/// @brief CameraComponent
+	struct CameraComponent 
 	{
 		CameraComponent(const MyVector2& offset = {0,0},
 						const MyVector2& target = {0,0},
@@ -108,7 +140,7 @@ namespace astro
 			, zoomSpeed(0.f)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::CAMERA_COMPONENT;
 		}
@@ -118,26 +150,14 @@ namespace astro
 		float zoomSpeed = 0.f;
 	};
 
-	struct RotationComponent : public Component
-	{
-		RotationComponent(float angle = 0.f, float previousAngle = 0.f)
-			: angle{ angle }
-		{ }
 
-		ComponentType GetType() override 
-		{ 
-			return ComponentType::ROTATION_COMPONENT;
-		}
-
-		Angle angle = { 0.f };
-	};
-
-	struct WarpComponent : public Component
+/// @brief WarpComponent
+	struct WarpComponent 
 	{
 		WarpComponent()
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::WARP_COMPONENT;
 		}
@@ -145,12 +165,13 @@ namespace astro
 		bool isWarp = false;
 	};
 
-	struct UIComponent : public Component
+/// @brief UIComponent
+	struct UIComponent 
 	{
 		UIComponent()
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::UI_COMPONENT;
 		}
@@ -159,19 +180,21 @@ namespace astro
 
 	};
 
-	struct FrameComponent : public Component
+/// @brief FrameComponent
+	struct FrameComponent 
 	{
-		FrameComponent(InstanceID target = 0)
+		FrameComponent(InstanceID target = 0, InstanceID manage = 0)
 			: time(0)
 			, speed(100.f)
 			, target(target)
+			, manage(manage)
+			, index(0)
 			, rotationDirection(0)
 			, color{ 255,255,255,255 }
-			, enable(false)
-			, increaseSizeOffset(0)
+			, size(0)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::FRAME_COMPONENT;
 		}
@@ -179,34 +202,38 @@ namespace astro
 		float time = 0.f;
 		float speed = 0.f;
 		InstanceID target;
+		InstanceID manage;
+		size_t index;
 		float rotationDirection;
 		Color color;
-		bool enable;
-		float increaseSizeOffset;
+		float size;
 	};
 
-	struct FrameEffectComponent : public Component
+/// @brief FrameManageComponent
+	struct FrameManageComponent 
 	{
-		FrameEffectComponent(const ObjectType& frameOfObjectType)
-			: frameOfObjectType(frameOfObjectType)
+		FrameManageComponent(InstanceID frameOwner = 0)
+			: frameOwner(frameOwner)
 			, frameNowIndex(0)
-			, enableTrigerTime(0.f)
+			, frameMaxIndex(0)
+			, trigerTime(0.f)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
-			return ComponentType::FRAME_EFFECT_COMPONENT;
+			return ComponentType::FRAME_MANAGE_COMPONENT;
 		}
 
-		ObjectType frameOfObjectType;
-		std::vector<std::shared_ptr<Object>> frames;
-		int frameNowIndex = 0;
-		float enableTrigerTime = 0.f;
+		InstanceID frameOwner;
+		size_t frameNowIndex = 0;
+		size_t frameMaxIndex = 0;
+		float trigerTime = 0.f;
 	};
 	
-	struct ShaderComponent : public Component
+/// @brief ShaderComponent
+	struct ShaderComponent 
 	{
-		ShaderComponent(const Shader& shader, ShaderName shaderName)
+		ShaderComponent(const Shader& shader = {}, ShaderName shaderName = ShaderName::NONE)
 			: shader(shader)
 			, shaderName(shaderName)
 			, enabled(true)
@@ -215,7 +242,7 @@ namespace astro
 			, origin{0.f, 0.f}
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::SHADER_COMPONENT;
 		}
@@ -229,9 +256,10 @@ namespace astro
 		MyVector2 origin;
 	};
 		
-	struct ColorDiffusionShaderComponent : public ShaderComponent 
+/// @brief ShaderColorDiffusionComponent
+	struct ShaderColorDiffusionComponent : public ShaderComponent
 	{
-		ColorDiffusionShaderComponent()
+		ShaderColorDiffusionComponent()
 			: ShaderComponent(LoadShader(defaultVs, colorDiffusionFs), ShaderName::COLOR_DIFFUSION)
 			, textureLoc(0)
 			, bleedRadiusLoc(0)
@@ -239,7 +267,7 @@ namespace astro
 			, colorThresholdLoc(0)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT;
 		}
@@ -250,9 +278,10 @@ namespace astro
 		int colorThresholdLoc = 0;
 	};
 
-	struct FrameShaderComponent : public ShaderComponent 
+/// @brief ShaderFrameComponent
+	struct ShaderFrameComponent : public ShaderComponent
 	{
-		FrameShaderComponent()
+		ShaderFrameComponent()
 			: ShaderComponent(LoadShader(defaultVs, frameFs), ShaderName::FRAME)
 			, time(0)
 			, timeLoc(0)
@@ -261,7 +290,7 @@ namespace astro
 			, resolutionLoc(0)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
 			return ComponentType::SHADER_FRAME_COMPONENT;
 		}
@@ -274,16 +303,22 @@ namespace astro
 		int resolutionLoc = 0;
 	};
 
-	struct BulletComponent : public Component 
+/// @brief MissileComponent
+	struct MissileComponent 
 	{
-		BulletComponent(InstanceID bulletOwner)
-			: bulletOwner(bulletOwner)
+		MissileComponent(InstanceID missileOwner = 0)
+			: missileOwner(missileOwner)
+			, speed(0)
 		{ }
 
-		ComponentType GetType() override 
+		ComponentType GetType() 
 		{ 
-			return ComponentType::BULLET_COMPONENT;
+			return ComponentType::MISSILE_COMPONENT;
 		}
-		InstanceID bulletOwner;
+		InstanceID missileOwner;
+		float speed;
 	};
+
+
+
 }

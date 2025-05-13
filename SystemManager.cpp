@@ -1,13 +1,14 @@
 #include "SystemManager.h"
 #include "CameraSystem.h"
 #include "InputSystem.h"
+#include "StarSystem.h"
+#include "TransformSystem.h"
 #include "MoveSystem.h"
-#include "RotationSystem.h"
 #include "BrightEffectSystem.h"
 #include "WarpSystem.h"
 #include "RenderSystem.h"
 #include "FrameSystem.h"
-#include "FrameEffectSystem.h"
+#include "FrameManageSystem.h"
 
 namespace astro
 {
@@ -22,13 +23,18 @@ namespace astro
 									), RegisterLogic::ALL}
 			});
 
-		RegisterSystem<CameraSystem>(SystemID::CAMERA_SYSTEM, std::make_shared<CameraSystem>());
-		systemRequirement.insert({ SystemID::CAMERA_SYSTEM,{
+		RegisterSystem<StarSystem>(SystemID::STAR_SYSTEM, std::make_shared<StarSystem>());
+		systemRequirement.insert({ SystemID::STAR_SYSTEM,{
 									static_cast< unsigned int >
 									(
-										ComponentType::CAMERA_COMPONENT
+										ComponentType::ACTIVE_COMPONENT |
+										ComponentType::TRANSFORM_COMPONENT |
+										ComponentType::MOVE_COMPONENT |
+										ComponentType::RENDER_COMPONENT |
+										ComponentType::BRIGHT_EFFECT_COMPONENT |
+										ComponentType::WARP_COMPONENT
 									), RegisterLogic::ALL}
-		});
+			});
 
 		RegisterSystem<MoveSystem>(SystemID::MOVE_SYSTEM, std::make_shared<MoveSystem>());
 		systemRequirement.insert({ SystemID::MOVE_SYSTEM,{
@@ -38,6 +44,14 @@ namespace astro
 										ComponentType::TRANSFORM_COMPONENT
 									), RegisterLogic::ALL}
 		});
+
+		RegisterSystem<TransformSystem>(SystemID::TRANSFORM_SYSTEM, std::make_shared<TransformSystem>(objectManager));
+		systemRequirement.insert({ SystemID::TRANSFORM_SYSTEM,{
+									static_cast< unsigned int >
+									(
+										ComponentType::TRANSFORM_COMPONENT
+									), RegisterLogic::ALL}
+			});
 
 		RegisterSystem<BrightEffectSystem>(SystemID::BRIGHT_EFFECT_SYSTEM, std::make_shared<BrightEffectSystem>());
 		systemRequirement.insert({ SystemID::BRIGHT_EFFECT_SYSTEM, {
@@ -55,11 +69,11 @@ namespace astro
 									), RegisterLogic::ALL}
 		});
 
-		RegisterSystem<RotationSystem>(SystemID::ROTATION_SYSTEM, std::make_shared<RotationSystem>());
-		systemRequirement.insert({ SystemID::ROTATION_SYSTEM,{
+		RegisterSystem<FrameManageSystem>(SystemID::FRAME_MANAGE_SYSTEM, std::make_shared<FrameManageSystem>(objectManager));
+		systemRequirement.insert({ SystemID::FRAME_MANAGE_SYSTEM,{
 									static_cast< unsigned int >
 									(
-										ComponentType::ROTATION_COMPONENT
+										ComponentType::FRAME_MANAGE_COMPONENT
 									), RegisterLogic::ALL}
 		});
 
@@ -71,11 +85,13 @@ namespace astro
 									), RegisterLogic::ALL}
 		});
 
-		RegisterSystem<FrameEffectSystem>(SystemID::FRAME_EFFECT_SYSTEM, std::make_shared<FrameEffectSystem>(objectManager));
-		systemRequirement.insert({ SystemID::FRAME_EFFECT_SYSTEM,{
+
+
+		RegisterSystem<CameraSystem>(SystemID::CAMERA_SYSTEM, std::make_shared<CameraSystem>());
+		systemRequirement.insert({ SystemID::CAMERA_SYSTEM,{
 									static_cast< unsigned int >
 									(
-										ComponentType::FRAME_EFFECT_COMPONENT
+										ComponentType::CAMERA_COMPONENT
 									), RegisterLogic::ALL}
 		});
 
@@ -99,7 +115,7 @@ namespace astro
 
 	void SystemManager::RegisterObjectOfSystem(std::shared_ptr<Object> gameObject)
 	{
-		unsigned int gameObjectMask = gameObject.get()->GetComponentMask();
+		uint64_t gameObjectMask = gameObject.get()->GetComponentMask();
 		std::bitset<64> bits(gameObjectMask);
 
 		for (const auto& [systemId, systemMask] : systemRequirement)
@@ -154,15 +170,12 @@ namespace astro
 
 	void SystemManager::Draw()
 	{
-		BeginDrawing();
-		for ( const auto& [systemId , system] : systems )
+		for (const auto& [systemId , system] : systems)
 		{
 			if (systemId == SystemID::RENDER_SYSTEM || systemId == SystemID::SHADER_SYSTEM)
 			{
 				system.get()->Process();
 			}
 		}
-
-		EndDrawing();
 	}
 }

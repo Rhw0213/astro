@@ -11,9 +11,8 @@ namespace astro
 		RenderSystem();
 		void Init() override;
 		void Process() override;
+		void Render();
 	private:
-		std::vector<std::shared_ptr<UI>> uiObjects;
-		std::vector<std::shared_ptr<Object>> cameraObjects;
 		RenderTexture2D texture;
 	};
 }

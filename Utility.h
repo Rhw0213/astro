@@ -2,33 +2,29 @@
 #include "Common.h"
 #include "Object.h" 
 #include "Component.h" 
+#include "ComponentManager.h" 
 #include <memory> 
 #include "math.h"
 
 namespace astro
 {
-	static void TranslatePosition(std::shared_ptr<Object> target, std::shared_ptr<Object> source, MyVector2 offset)
+	static MyVector2 TranslatePosition(std::shared_ptr<Object> target, MyVector2 offset)
 	{
-		auto* targetTransformComp = target.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		auto* targetRotationComp = target.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+		auto& CM = ComponentManager::Instance();
+		auto* targetTransformComp = CM.GetComponent<TransformComponent>(target->GetComponentMask(), target->GetInstanceID());
 
-		auto* sourceTransformComp = source.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		auto* sourceRotationComp = source.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
+		const MyVector2&	targetPos		= targetTransformComp->worldPosition;
+		const Angle&		targetRotation	= targetTransformComp->worldRotation;
+		const float&		targetScale		= targetTransformComp->worldScale;
 
-		const MyVector2&	targetPos = targetTransformComp->position;
-		const Angle&		targetAngle = targetRotationComp->angle;
+		float cosValue = cosf(targetRotation.radian);
+		float sinValue = sinf(targetRotation.radian);
 
-		MyVector2&	sourcePos = sourceTransformComp->position;
-		Angle&		sourceAngle = sourceRotationComp->angle;
+		offset = MyVector2{ -offset.y(), offset.x() } * targetScale;
 
-		float cosValue = cosf(targetAngle.radian);
-		float sinValue = sinf(targetAngle.radian);
-
-		offset = { -offset.y(), offset.x() };
 		float rotateOffsetX = offset.x() * cosValue - offset.y() * sinValue;
 		float rotateOffsetY = offset.x() * sinValue + offset.y() * cosValue;
 
-		sourceAngle = targetAngle;
-		sourcePos = targetPos + MyVector2{ rotateOffsetX, rotateOffsetY };
+		return targetPos + MyVector2{ rotateOffsetX, rotateOffsetY };
 	}
 }

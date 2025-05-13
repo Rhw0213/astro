@@ -1,53 +1,65 @@
 #include "Frame.h"
+#include "Setting.h"
+#include "ComponentManager.h"
 #include <iostream> 
 
 namespace astro
 {
-	Frame::Frame(InstanceID targetId)
+	Frame::Frame(InstanceID parentId, InstanceID manageId)
+		: parentId(parentId)
+		, manageId(manageId)
 	{
-		Object::AddComponent(std::make_shared<TransformComponent>());
-		Object::AddComponent(std::make_shared<MoveComponent>());
-		Object::AddComponent(std::make_shared<RotationComponent>());
-		Object::AddComponent(std::make_shared<RenderComponent>());
-		Object::AddComponent(std::make_shared<FrameComponent>(targetId));
+		componentMask = static_cast<uint64_t>(
+			ComponentType::ACTIVE_COMPONENT |
+			ComponentType::TRANSFORM_COMPONENT |
+			ComponentType::MOVE_COMPONENT |
+			ComponentType::FRAME_COMPONENT |
+			ComponentType::RENDER_COMPONENT 
+			);
 	}
 
 	void Frame::Init()
 	{
-		auto* renderComponent			= Object::GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-		auto* transformComponent		= Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
+		auto& setting	= GameSettingManager::Instance();
+		auto& CM		= ComponentManager::Instance();
 
-		if (renderComponent && transformComponent)
+		auto* activeComponent			= CM.GetComponent<ActiveComponent>		(componentMask, instanceId);
+		auto* renderComponent			= CM.GetComponent<RenderComponent>		(componentMask, instanceId);
+		auto* transformComponent		= CM.GetComponent<TransformComponent>	(componentMask, instanceId);
+		auto* frameComponent			= CM.GetComponent<FrameComponent>		(componentMask, instanceId);
+		auto* moveComponent				= CM.GetComponent<MoveComponent>		(componentMask, instanceId);
+
+		//target
+		if (activeComponent && renderComponent && transformComponent && frameComponent && moveComponent)
 		{
-			const MyVector2 position	= transformComponent->position;
-			auto& renderPoints			= renderComponent->points;
+			bool&		enable			= activeComponent->enable;
+			float&		frameSpeed		= frameComponent->speed;
+			float&		time			= frameComponent->time;
+			InstanceID&	target			= frameComponent->target;
+			InstanceID&	manage			= frameComponent->manage;
+			float&		moveSpeed		= moveComponent->speed;
+			MyVector2&	localPosition	= transformComponent->localPosition;
+			auto&		renderPoints	= renderComponent->points;
+			ObjectType&	objectType		= renderComponent->objectType;
+			float&		frameSize		= frameComponent->size;
+			Color&		color			= frameComponent->color;
 
-			renderPoints.push_back(position);
+			moveSpeed			= 0.f;
+			time				= 0.f;
+			localPosition		= {0, 0};
+			frameSize			= setting.frameSize;
+			frameSpeed			= setting.frameSpeed;
+			color				= { 255, 255, 255, 125 };
+			objectType			= ObjectType::FRAME_ID;
+			target				= parentId;
+			manage				= manageId;
+
+			renderPoints.push_back({0, 0});
+			enable = false;
 		}
 	}
 
 	void Frame::Update()
 	{
-		if (Object::IsEnable())
-		{
-			auto* moveComponent = Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-			auto* transformComponent = Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-			auto* frameComponent = Object::GetComponent<FrameComponent>(ComponentType::FRAME_COMPONENT);
-			auto* rotationComponent = Object::GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
-
-			float& moveSpeed = moveComponent->speed;
-			const float& frameSpeed = frameComponent->speed;
-			float				time = frameComponent->time;
-			float				rotationDirection = frameComponent->rotationDirection;
-			MyVector2& direction = transformComponent->direction;
-			Angle& angle = rotationComponent->angle;
-
-			angle.radian += (2.f * PI * GetFrameTime() * rotationDirection);
-			direction = MyVector2{ cosf(angle.radian), sinf(angle.radian) };
-
-			float factorOut = 1.f - powf(1.f - Normalize(time, 0.f, 1.f), 2.f);
-
-			moveSpeed = frameSpeed * (1.f - factorOut);
-		}
 	}
 }

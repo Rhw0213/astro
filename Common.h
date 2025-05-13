@@ -4,6 +4,7 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <unordered_map>
 
 namespace astro
 {
@@ -12,40 +13,195 @@ namespace astro
 	static const int SCREEN_WIDTH = 1200;
 	static const int SCREEN_HEIGHT = 800;
 
-	static const float MIN_STAR_SIZE = 1.0f; // 실제 최소 크기 설정
-	static const float MAX_STAR_SIZE = 3.0f; // 실제 최대 크기 설정
-
 	static const char* colorDiffusionFs = "game/ColorDiffusion.fs";
 	static const char* frameFs = "game/Frame.fs";
 
 	static const char* defaultVs = "game/Default.vs";
 
-	enum class ComponentType
+	struct TransformComponent;
+	struct ActiveComponent;
+	struct RenderComponent;
+	struct MoveComponent;
+	struct InputComponent;
+	struct BrightEffectComponent;
+	struct CameraComponent;
+	struct RotationComponent;
+	struct WarpComponent;
+	struct UIComponent;
+	struct FrameComponent;
+	struct FrameManageComponent;
+	struct MissileComponent;
+	struct ShaderComponent;
+	struct ShaderColorDiffusionComponent;
+	struct ShaderFrameComponent;
+	enum class ComponentType : uint64_t
 	{
 		TRANSFORM_COMPONENT					= 1 << 0,
-		RENDER_COMPONENT					= 1 << 1,
-		MOVE_COMPONENT						= 1 << 2,
-		INPUT_COMPONENT						= 1 << 3,
-		BRIGHT_EFFECT_COMPONENT				= 1 << 4,
-		CAMERA_COMPONENT					= 1 << 5,
-		ROTATION_COMPONENT					= 1 << 6,
-		WARP_COMPONENT						= 1 << 7,
-		UI_COMPONENT						= 1 << 8,
-		FRAME_COMPONENT						= 1 << 9,
-		FRAME_EFFECT_COMPONENT				= 1 << 10,
-		BULLET_COMPONENT					= 1 << 11,
-		SHADER_COMPONENT					= 1 << 12, 
-		SHADER_COLOR_DIFFUSION_COMPONENT	= 1 << 13,
-		SHADER_FRAME_COMPONENT				= 1 << 14
+		ACTIVE_COMPONENT					= 1 << 1,
+		RENDER_COMPONENT					= 1 << 2,
+		MOVE_COMPONENT						= 1 << 3,
+		INPUT_COMPONENT						= 1 << 4,
+		BRIGHT_EFFECT_COMPONENT				= 1 << 5,
+		CAMERA_COMPONENT					= 1 << 6,
+		ROTATION_COMPONENT					= 1 << 7,
+		WARP_COMPONENT						= 1 << 8,
+		UI_COMPONENT						= 1 << 9,
+		FRAME_COMPONENT						= 1 << 10,
+		FRAME_MANAGE_COMPONENT				= 1 << 11,
+		MISSILE_COMPONENT					= 1 << 12,
+		SHADER_COMPONENT					= 1 << 13, 
+		SHADER_COLOR_DIFFUSION_COMPONENT	= 1 << 14,
+		SHADER_FRAME_COMPONENT				= 1 << 15 
 	};
 
 	inline ComponentType operator|(ComponentType a , ComponentType b)
 	{
 		return static_cast<ComponentType>(static_cast<int>(a) | static_cast<int>(b));
 	}
+	template<typename T>
+	constexpr ComponentType GetComponentType();
+
+	// 각 컴포넌트 클래스에 대한 템플릿 특수화
+	template<> constexpr ComponentType GetComponentType<TransformComponent>() { return ComponentType::TRANSFORM_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<ActiveComponent>() { return ComponentType::ACTIVE_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<RenderComponent>() { return ComponentType::RENDER_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<MoveComponent>() { return ComponentType::MOVE_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<InputComponent>() { return ComponentType::INPUT_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<BrightEffectComponent>() { return ComponentType::BRIGHT_EFFECT_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<CameraComponent>() { return ComponentType::CAMERA_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<WarpComponent>() { return ComponentType::WARP_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<UIComponent>() { return ComponentType::UI_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<FrameComponent>() { return ComponentType::FRAME_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<FrameManageComponent>() { return ComponentType::FRAME_MANAGE_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<MissileComponent>() { return ComponentType::MISSILE_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<ShaderComponent>() { return ComponentType::SHADER_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<ShaderColorDiffusionComponent>() { return ComponentType::SHADER_COLOR_DIFFUSION_COMPONENT; }
+	template<> constexpr ComponentType GetComponentType<ShaderFrameComponent>() { return ComponentType::SHADER_FRAME_COMPONENT; }
+
+	struct ComponentData
+	{
+		void* data = nullptr;
+		size_t size = 0;
+		size_t count = 0;
+		size_t capacity = 0;
+
+		void (*destroyFunc)(void*, size_t) = nullptr;
+	};
+
+	struct Archetype
+	{
+		uint64_t typeMask = 0;
+		std::unordered_map<ComponentType, ComponentData> components;
+		std::unordered_map<InstanceID, size_t> objectIndexs;
+		size_t objectCount = 0;
+
+		template<typename T>
+		void RegisterComponent(InstanceID instanceId)
+		{
+			ComponentType type = GetComponentType<T>();
+			auto it = components.find(type); 
+
+			if (it == components.end())
+			{
+				components[type] = ComponentData();
+			}
+
+			auto& component = components[type];
+
+			// 소멸자
+			component.destroyFunc = [](void* data, size_t count) {
+					T* typeData = static_cast<T*>(data);
+					delete[] typeData;
+				};
+
+			size_t tSize = sizeof(T);
+
+			if (component.data == nullptr)
+			{
+				component.data = new T[1];
+				component.capacity = 1;
+				component.size = tSize * component.capacity;
+				component.count = 0;
+			}
+			else
+			{
+				if (component.count >= component.capacity)
+				{
+					component.capacity *= 2;
+
+					T* newData = new T[component.capacity];
+
+					for (size_t i = 0; i < component.count; i++)
+					{
+						newData[i] = static_cast<T*>(component.data)[i];
+					}
+
+					delete[] static_cast<T*>(component.data);
+
+					component.data = newData;
+					component.size = tSize * component.capacity;
+				}
+
+				if (component.count < component.capacity)
+				{ 
+					static_cast<T*>(component.data)[component.count] = T();
+					component.count++;
+				}
+			}
+
+			auto itIndex = objectIndexs.find(instanceId);
+
+			if (itIndex == objectIndexs.end())
+			{
+				objectIndexs[instanceId] = objectIndexs.size();
+				objectCount++;
+			}
+		}
+
+		void DestoryComponentData()
+		{
+			for	(auto& [_, component] : components)
+			{
+				if (component.data && component.destroyFunc)
+				{
+					component.destroyFunc(component.data, component.count);
+					component.data = nullptr;
+				}
+			}
+		}
+
+		template<typename T>
+		T* GetComponents()
+		{
+			ComponentType type = GetComponentType<T>();
+
+			auto it = components.find(type);
+
+			if (it != components.end())
+			{
+				return static_cast<T*>(it->second.data);
+			}
+
+			return nullptr;
+		}
+
+		template<typename T>
+		T* GetComponent(InstanceID instanceId)
+		{
+			T* components = GetComponents<T>();
+
+			if (!components)
+			{
+				return nullptr;
+			}
+
+			return &components[objectIndexs[instanceId]];
+		}
+	};
 
 	enum class ShaderName
 	{
+		NONE,
 		COLOR_DIFFUSION, // 뽀사시 
 		FRAME,
 	};
@@ -56,13 +212,13 @@ namespace astro
 		//GameObject
 		GAMEOBJECT_ID,
 		PLAYER_ID,
-		BULLET_ID,
+		MISSILE_ID,
 		STAR_ID,
 		ASTEROID_ID,
 
 		//Effect
 		FRAME_ID,
-		FRAME_EFFECT_ID,
+		FRAME_MANAGE_ID,
 
 		//UI
 		UI_ID,

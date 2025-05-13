@@ -11,7 +11,7 @@ namespace astro
 	{
 		auto it = objects.find(instanceId);
 
-		if ( it != objects.end() )
+		if (it != objects.end())
 		{
 			return it->second;
 		}

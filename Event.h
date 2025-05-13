@@ -2,29 +2,43 @@
 
 namespace astro
 {
+/// @brief Event
 	struct Event
 	{
 		virtual ~Event() = default;
 	};
 
+/// @brief WarpStartEvent
 	struct WarpStartEvent : Event
 	{
-		WarpStartEvent(float increaseFrameSizeOffset = 0.f) 
-			: increaseFrameSizeOffset(increaseFrameSizeOffset)
+		WarpStartEvent(float frameSize = 0.f) 
+			: frameSize(frameSize)
 		{};
 
-		float increaseFrameSizeOffset;
+		float frameSize;
 	};
 
+/// @brief WarpStopEvent
 	struct WarpStopEvent : Event
 	{
-		WarpStopEvent(float increaseFrameSizeOffset = 0.f) 
-			: increaseFrameSizeOffset(increaseFrameSizeOffset)
+		WarpStopEvent(float frameSize = 0.f) 
+			: frameSize(frameSize)
 		{};
 
-		float increaseFrameSizeOffset;
+		float frameSize;
 	};
 
+/// @brief MissileFireEvent
+	struct MissileFireEvent : Event
+	{
+		MissileFireEvent(InstanceID fireOwner = 0) 
+			: fireOwner(fireOwner)
+		{};
+
+		InstanceID fireOwner;
+	};
+
+/// @brief CameraZoomEvent
 	struct CameraZoomEvent : Event
 	{
 		CameraZoomEvent(float targetZoom, float zoomSpeed) 
@@ -36,6 +50,7 @@ namespace astro
 		float zoomSpeed = 0.f;
 	};
 
+/// @brief ObjectRenderEndEvent
 	struct ObjectRenderEndEvent : Event
 	{
 		ObjectRenderEndEvent(RenderTexture2D* texture) 

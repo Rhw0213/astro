@@ -3,6 +3,7 @@
 
 namespace astro
 {
+/// @brief UIControll
 	class UIControll : public UI
 	{
 	public:

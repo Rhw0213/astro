@@ -5,6 +5,7 @@
 
 namespace astro
 {
+/// @brief UI
 	class UI : public Object
 	{
 	public:

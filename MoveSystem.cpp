@@ -1,4 +1,5 @@
 #include "MoveSystem.h"
+#include "ComponentManager.h"
 
 namespace astro
 {
@@ -8,43 +9,33 @@ namespace astro
 
 	void MoveSystem::Process()
 	{
-		for (const auto& object : objects)
+		auto& CM = ComponentManager::Instance();
+
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t>(ComponentType::TRANSFORM_COMPONENT |
+									ComponentType::MOVE_COMPONENT)
+		);
+
+		for (auto& archetype : archetypes)
 		{
-			if (object && object.get()->IsEnable())
-			{
-				auto* transformComponent = object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-				auto* moveComponent = object.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-				auto* renderComponent = object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
+			auto* transformComponents = archetype->GetComponents<TransformComponent>();
+			auto* moveComponents = archetype->GetComponents<MoveComponent>();
 
-				if (transformComponent && moveComponent && renderComponent)
+			if (transformComponents && moveComponents)
+			{ 
+				for (size_t i = 0; i < archetype->objectCount; i++)
 				{
-					auto& points = renderComponent->points;
+					auto& transformComponent	= transformComponents[i];
+					auto& moveComponent			= moveComponents[i];
 
-					MyVector2& position = transformComponent->position;
-					const MyVector2& moveDirection = moveComponent->direction.Normalize();
-					const float& speed = moveComponent->speed;
-					MyVector2& slowVelocity = moveComponent->slowVelocity;
+					MyVector2&			localPosition	= transformComponent.localPosition;
+					const MyVector2&	moveDirection	= moveComponent.direction.Normalize();
+					const float&		speed			= moveComponent.speed;
+					MyVector2&			slowVelocity	= moveComponent.slowVelocity;
+					MyVector2			velocity		= moveDirection * speed * GetFrameTime();
 
-					//속도 계산
-					MyVector2 velocity = moveDirection * speed * GetFrameTime();
-					//float velocityLength = velocity.Length();
-
-					//if (velocityLength > slowVelocity.Length())
-					//{
-					//	slowVelocity += (velocity * 0.05f);
-					//}
-					//else
-					//{
-					//	slowVelocity *= 0.95f;
-					//}
-
-					//랜더위치 이동
-					//for (auto& point : points)
-					//{
-					//	point += slowVelocity;
-					//}
-
-					position += velocity;
+					localPosition += velocity;
+					//localPosition += {0, 1};
 				}
 			}
 		}

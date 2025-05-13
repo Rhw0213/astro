@@ -1,69 +1,58 @@
 #include "FrameSystem.h"
-#include <iostream>
-#include "Setting.h"
+#include "Component.h"
+#include "Object.h"
 #include "Utility.h"
+#include "Setting.h"
+#include "ComponentManager.h"
 #include "EventManager.h"
-#include "Event.h"
+#include <iostream> 
 
 namespace astro
 {
-	FrameSystem::FrameSystem(std::shared_ptr<ObjectManager> objectManager)
-		: objectManager(objectManager)
-	{
-	}
-
 	void FrameSystem::Init()
 	{
 		auto& setting = GameSettingManager::Instance();
+		auto& CM = ComponentManager::Instance();
 
-		for (const auto& object : objects)
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t>(ComponentType::FRAME_COMPONENT |
+									ComponentType::ACTIVE_COMPONENT) 
+		);
+
+		for (auto& archetype : archetypes)
 		{
-			if (object)
+			auto* frameComponents = archetype->GetComponents<FrameComponent>();
+			auto* activeComponents = archetype->GetComponents<ActiveComponent>();
+
+			if (frameComponents && activeComponents)
 			{
-				auto* frameComponent		= object.get()->GetComponent<FrameComponent>(ComponentType::FRAME_COMPONENT);
-				auto* transformComponent	= object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-				auto* rotationComponent		= object.get()->GetComponent<RotationComponent>(ComponentType::ROTATION_COMPONENT);
-				auto* moveComponent			= object.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-				auto* renderComponent		= object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-
-				//target
-				auto targetObject				= objectManager->GetObject(frameComponent->target);
-				auto* targetTransformComponent	= targetObject->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-
-				MyVector2& direction			= transformComponent->direction;
-				float& frameSpeed				= frameComponent->speed;
-				float& time						= frameComponent->time;
-				float& moveSpeed				= moveComponent->speed;
-				float& size						= transformComponent->size;
-				Angle& angle					= rotationComponent->angle;
-				const MyVector2& targetPosition = targetTransformComponent->position;
-				MyVector2& framePosition		= transformComponent->position;
-				auto& renderPoints				= renderComponent->points;
-				float& increaseSizeOffset		= frameComponent->increaseSizeOffset;
-
-				direction				= targetTransformComponent->direction * -1.f;
-				angle.radian			= atan2f(direction.y() , direction.x());
-				framePosition			= targetPosition;
-				moveSpeed				= 0.f;
-				time					= 0.f;
-				renderPoints[0]			= framePosition;
-				frameSpeed				= setting.frameSpeed;
-				increaseSizeOffset		= setting.frameIncreaseFrameDefaultSize;
-
-				if (targetObject->GetType() == ObjectType::PLAYER_ID)
+				for (size_t i = 0; i < archetype->objectCount; i++)
 				{
-					size = setting.framePlayerSize;
+					float&				frameSize	= frameComponents[i].size;
+					const InstanceID&	ownerId		= frameComponents[i].target;
+					const InstanceID&	manageId	= frameComponents[i].manage;
+					size_t&				index		= frameComponents[i].index;
+
+					auto ownerObject = objectManager->GetObject(ownerId);
+					auto manageObject = objectManager->GetObject(manageId);
+
+					auto* frameManageComponent = CM.GetComponent<FrameManageComponent>(manageObject->GetComponentMask(), manageObject->GetInstanceID());
+					size_t& maxIndex = frameManageComponent->frameMaxIndex;
+
+					index = maxIndex++;
+
+					if(ownerObject->GetType() == ObjectType::PLAYER_ID)
+					{ 
+						frameSize = setting.frameSize;
+						EventManager::Instance().RegisterEvent<WarpStartEvent>([&frameSize](const WarpStartEvent* e) {
+							frameSize = e->frameSize;
+						});
+
+						EventManager::Instance().RegisterEvent<WarpStopEvent>([&frameSize](const WarpStopEvent* e) {
+							frameSize = e->frameSize;
+						});
+					}
 				}
-
-				object.get()->SetEnable(false);
-
-				EventManager::Instance().RegisterEvent<WarpStartEvent>([&increaseSizeOffset](const WarpStartEvent* e) {
-					increaseSizeOffset = e->increaseFrameSizeOffset ;
-				});
-
-				EventManager::Instance().RegisterEvent<WarpStopEvent>([&increaseSizeOffset](const WarpStopEvent* e) {
-					increaseSizeOffset = e->increaseFrameSizeOffset ;
-				});
 			}
 		}
 	}
@@ -71,50 +60,85 @@ namespace astro
 	void FrameSystem::Process()
 	{
 		auto& setting = GameSettingManager::Instance();
+		auto& CM = ComponentManager::Instance();
 
-		for (auto& object : objects)
+		auto archetypes = CM.GetArchetypeQuery(
+			static_cast<uint64_t>(ComponentType::FRAME_COMPONENT |
+									ComponentType::MOVE_COMPONENT |
+									ComponentType::TRANSFORM_COMPONENT |
+									ComponentType::ACTIVE_COMPONENT) 
+		);
+
+		for (auto& archetype : archetypes)
 		{
-			if (object && object.get()->IsEnable())
+			auto* frameComponents		= archetype->GetComponents<FrameComponent>();
+			auto* activeComponents		= archetype->GetComponents<ActiveComponent>();
+			auto* moveComponents		= archetype->GetComponents<MoveComponent>();
+			auto* transformComponents	= archetype->GetComponents<TransformComponent>();
+
+			if (frameComponents && activeComponents && moveComponents && transformComponents)
 			{
-				auto* frameComponent			= object.get()->GetComponent<FrameComponent>(ComponentType::FRAME_COMPONENT);
-				auto* renderComponent			= object.get()->GetComponent<RenderComponent>(ComponentType::RENDER_COMPONENT);
-				auto* frameTransformComponent	= object.get()->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-				auto* moveComponent				= object.get()->GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-				auto targetObject				= objectManager->GetObject(frameComponent->target);
-				auto* targetTransformComponent	= targetObject->GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-
-				MyVector2&		 frameDirection			= frameTransformComponent->direction;
-				float&			 size					= frameTransformComponent->size;
-				MyVector2&		 moveDirection			= moveComponent->direction;
-				MyVector2&		 position				= frameTransformComponent->position;
-				float&			 moveSpeed				= moveComponent->speed;
-				const MyVector2& targetDirection		= targetTransformComponent->direction;
-				MyVector2		 targetPosition			= targetTransformComponent->position;
-				const float&	 frameSpeed				= frameComponent->speed;
-				float&			 rotationDirection		= frameComponent->rotationDirection;
-				float&			 increaseSizeOffset		= frameComponent->increaseSizeOffset;
-				auto&			 renderPoints			= renderComponent->points;
-				float&			 time					= frameComponent->time;
-
-				time += GetFrameTime();
-
-				if (time > setting.frameLifeTime)
+				for (size_t i = 0; i < archetype->objectCount; i++)
 				{
-					time = 0.f;
-					object.get()->SetEnable(false);
+					//if (activeComponents[i].enable)
+					{ 
+						bool&		enable				= activeComponents[i].enable;
+						float&		time				= frameComponents[i].time;
+						InstanceID&	targetId			= frameComponents[i].target;
+						InstanceID&	manageId			= frameComponents[i].manage;
+						size_t&		frameIndex			= frameComponents[i].index;
+						float&		frameSpeed			= frameComponents[i].speed;
+
+						float&		moveSpeed			= moveComponents[i].speed;
+						MyVector2&	moveDirection		= moveComponents[i].direction;
+
+						float&		localScale			= transformComponents[i].localScale;
+						MyVector2&	frameLocalPosition	= transformComponents[i].localPosition;
+
+						auto manage = objectManager.get()->GetObject(manageId);
+
+						auto* frameManageComponent = CM.GetComponent<FrameManageComponent>(manage->GetComponentMask(), manage->GetInstanceID());
+
+						size_t& frameNowIndex = frameManageComponent->frameNowIndex;
+						InstanceID& frameOwner = frameManageComponent->frameOwner;
+
+						if (!enable && (targetId == frameOwner) && (frameIndex == frameNowIndex))
+						{
+							auto targetObject = objectManager.get()->GetObject(targetId);
+							auto* targetTransformComponent = CM.GetComponent<TransformComponent>(targetObject->GetComponentMask(), targetObject->GetInstanceID());
+
+							const Angle& targetRotation	= targetTransformComponent->worldRotation;
+							float randomRadian	= Angle::DregreeToRadian(Random::distributionFrameRange(Random::gen));
+							randomRadian		+= targetRotation.radian;
+
+							moveDirection		= { -cosf(randomRadian), -sinf(randomRadian) };
+							frameLocalPosition	= TranslatePosition(targetObject, { setting.frameTargetOffsetX, setting.frameTargetOffsetY });
+							moveSpeed			= frameSpeed;
+							localScale			= 1.f;
+							enable				= true;
+						}
+
+						if (enable)
+						{	
+							time += GetFrameTime();
+
+							if (time > setting.frameLifeTime)
+							{
+								time = 0.f;
+								enable = false;
+							}
+
+							float factorOut = 1.f - powf(1.f - Normalize(time, 0.f, 1.f), 2.f);
+							moveSpeed = frameSpeed * (1.f - factorOut);
+							localScale *= 0.95f;
+
+							if (localScale <= 0.f)
+							{
+								localScale = 1.f;
+							}
+						}
+					}
 				}
-
-				float targetRadian = atan2f(targetDirection.y(), targetDirection.x());
-				float randomRadian = Angle::DregreeToRadian(Random::distributionFrameRange(Random::gen));
-
-				rotationDirection = randomRadian;
-				targetRadian += randomRadian;
-
-				moveDirection = { -cosf(targetRadian), -sinf(targetRadian) };
-				frameDirection = { -cosf(targetRadian), -sinf(targetRadian) };
-
-				renderPoints[0] = position;
-				size += GetFrameTime() * increaseSizeOffset;
 			}
 		}
 	}

@@ -7,6 +7,7 @@
 
 namespace astro
 {
+/// @brief EventManager
 	class EventManager
 	{
 	public:

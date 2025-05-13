@@ -14,12 +14,15 @@ namespace astro
 		void Init();
 		void Run();
 
+		void CreateObject();
+		void CreateObjectPart(ObjectType type, std::shared_ptr<Object> owner, std::shared_ptr<Object> manage, int count);
+		std::shared_ptr<Object> CreateObjectManagePart(ObjectType type, std::shared_ptr<Object> owner, int count);
+		std::shared_ptr<Object> CreateObjectOfCount(ObjectType type, int count);
+
 	private:
+		std::shared_ptr<ObjectManager>		objectManager;
+		std::unique_ptr<SystemManager>		systemManager;
 
-		std::shared_ptr<ObjectManager> objectManager;
-
-		std::shared_ptr<UIControll> uiControll;
-
-		std::unique_ptr<SystemManager> systemManager;
+		std::shared_ptr<UIControll>			uiControll;
 	};
 }

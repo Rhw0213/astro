@@ -7,7 +7,7 @@ namespace astro
 	class Asteroid : public GameObject
 	{
 	public:
-		Asteroid(const MyVector2& position = {0, 0});
+		Asteroid(InstanceID parentId = 0);
 		void Init() override;
 		void Update() override;
 

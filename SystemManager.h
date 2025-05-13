@@ -11,6 +11,7 @@
 
 namespace astro
 {
+/// @brief SystemManager 
 	class SystemManager
 	{
 	public:
@@ -19,15 +20,26 @@ namespace astro
 	public:
 		enum class SystemID
 		{
+			//input
 			INPUT_SYSTEM			, 
-			MOVE_SYSTEM				, 
+
+
+			STAR_SYSTEM				,
 			BRIGHT_EFFECT_SYSTEM	, 
 			WARP_SYSTEM				, 
-			ROTATION_SYSTEM			, 
 			FRAME_SYSTEM			, 
-			FRAME_EFFECT_SYSTEM		, 
+			FRAME_MANAGE_SYSTEM		, 
+
+			//movement
+			MOVE_SYSTEM				, 
+			TRANSFORM_SYSTEM		,
+
+			//effect
+
+			//
+
+			//
 			CAMERA_SYSTEM			, 
-			//¸¶Áö¸·
 			RENDER_SYSTEM			, 
 			SHADER_SYSTEM			,
 		};

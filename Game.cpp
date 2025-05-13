@@ -2,11 +2,13 @@
 #include "Common.h"
 #include "raylib.h"
 #include "Frame.h"
-#include "FrameEffect.h"
+#include "FrameManage.h"
 #include "Player.h"
+#include "Missile.h"
 #include "Star.h"
 #include "Asteroid.h"
 #include "Setting.h"
+#include <iostream> 
 
 namespace astro
 {
@@ -28,42 +30,10 @@ namespace astro
 
 	void Game::Init()
 	{
-		//Manager
 		objectManager = std::make_unique<ObjectManager>();
 		systemManager = std::make_unique<SystemManager>(objectManager);
-
-		//UI
-		uiControll = std::make_shared<UIControll>();
-		//systemManager.get()->RegisterObjectOfSystem(uiControll);
-
-		//uiControll->Init();
-
-		// PLAYER
-		auto player = objectManager.get()->CreateObject<Player>(MyVector2{ SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f });
-
-		for (size_t i = 0; i < 10; i++)
-		{
-			auto frame = objectManager.get()->CreateObject<Frame>(player.get()->GetInstanceID());
-			systemManager.get()->RegisterObjectOfSystem(frame);
-		}
-		auto frameEffect = objectManager.get()->CreateObject<FrameEffect>(player.get()->GetType());
-
-		systemManager.get()->RegisterObjectOfSystem(frameEffect);
-		systemManager.get()->RegisterObjectOfSystem(player);
-
-		// STAR
-		for (size_t i = 0; i < 300; i++)
-		{
-			auto star = objectManager.get()->CreateObject<Star>();
-			systemManager.get()->RegisterObjectOfSystem(star);
-		}
-
-		//asteroid
-		for (size_t i = 0; i < 10; i++)
-		{
-			auto asteroid = objectManager.get()->CreateObject<Asteroid>();
-			systemManager.get()->RegisterObjectOfSystem(asteroid);
-		}
+		
+		CreateObject();
 
 		objectManager.get()->Init();
 		systemManager->Init();
@@ -73,10 +43,101 @@ namespace astro
 	{
 		while (!WindowShouldClose())
 		{
+			double start1 = GetTime();
 			objectManager.get()->Update();
-			systemManager->Update();
+			double end1 = GetTime();
 
-			systemManager->Draw();
+			double start2 = GetTime();
+			systemManager.get()->Update();
+			double end2 = GetTime();
+
+			double start3 = GetTime();
+			systemManager.get()->Draw();
+			double end3 = GetTime();
+
+			//std::cout << "===============================" << std::endl;
+			//std::cout << "Update time: " << end1 - start1 << std::endl;
+			//std::cout << "Logic  time: " << end2 - start2 << std::endl;
+			//std::cout << "Draw   time: " << end3 - start3 << std::endl;
+			//std::cout << "Frame  time: " << GetFrameTime() << std::endl;
+			//std::cout << "===============================" << std::endl;
 		}
+	}
+
+	void Game::CreateObject()
+	{
+		//UI
+		//uiControll = std::make_shared<UIControll>();
+		//systemManager.get()->RegisterObjectOfSystem(uiControll);
+		//uiControll->Init();
+
+		//PLAYER
+		auto object = CreateObjectOfCount(ObjectType::PLAYER_ID, 1);
+		{
+			auto manage = CreateObjectManagePart(ObjectType::FRAME_MANAGE_ID, object, 1);
+			CreateObjectPart(ObjectType::FRAME_ID, object, manage, 30);
+		}
+
+		// STAR
+		CreateObjectOfCount(ObjectType::STAR_ID, 300);
+
+		//asteroid
+		//CreateObjectOfCount(ObjectType::ASTEROID_ID, 10);
+	}
+
+	void Game::CreateObjectPart(ObjectType type, std::shared_ptr<Object> owner, std::shared_ptr<Object> manage, int count)
+	{
+		for (size_t i = 0; i < count; i++)
+		{
+			if (type == ObjectType::FRAME_ID)
+			{ 
+				auto object = objectManager->CreateObject<Frame>(owner->GetInstanceID(), manage->GetInstanceID());
+				systemManager->RegisterObjectOfSystem(object);
+			}
+			else if (type == ObjectType::MISSILE_ID)
+			{ 
+				auto object = objectManager->CreateObject<Missile>(owner->GetInstanceID());
+				systemManager->RegisterObjectOfSystem(object);
+			}
+		}
+	}
+
+	std::shared_ptr<Object> Game::CreateObjectManagePart(ObjectType type, std::shared_ptr<Object> owner, int count)
+	{
+		std::shared_ptr<Object> object;
+
+		if (type == ObjectType::FRAME_MANAGE_ID)
+		{
+			object = objectManager->CreateObject<FrameManage>(owner->GetInstanceID());
+			systemManager->RegisterObjectOfSystem(object);
+		}
+
+		return object;
+	}
+
+	std::shared_ptr<Object> Game::CreateObjectOfCount(ObjectType type, int count)
+	{
+		std::shared_ptr<Object> object;
+
+		for (size_t i = 0; i < count; i++)
+		{
+			if (type == ObjectType::PLAYER_ID)
+			{
+				object = objectManager->CreateObject<Player>();
+				systemManager->RegisterObjectOfSystem(object);
+			}
+			else if (type == ObjectType::ASTEROID_ID)
+			{
+				object = objectManager->CreateObject<Asteroid>();
+				systemManager->RegisterObjectOfSystem(object);
+			}
+			else if (type == ObjectType::STAR_ID)
+			{
+				object = objectManager->CreateObject<Star>();
+				systemManager->RegisterObjectOfSystem(object);
+			}
+		}
+
+		return object;
 	}
 }

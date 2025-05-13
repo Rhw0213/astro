@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <memory>
 #include "GameObject.h" 
+#include "ComponentManager.h" 
 
 namespace astro
 {
@@ -14,11 +15,15 @@ namespace astro
 		template <typename T, typename... Args>
 		std::shared_ptr<T> CreateObject(Args&&... args)
 		{
-			std::shared_ptr<T> ptr = std::make_shared<T>(std::forward<Args>(args)...);
+			auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
 
 			if (ptr)
 			{
-				objects.insert( { ptr.get()->GetInstanceID(), ptr } );
+				uint64_t	mask		= ptr.get()->GetComponentMask();
+				InstanceID  instanceId	= ptr.get()->GetInstanceID();
+
+				objects[instanceId] = ptr;
+				ComponentManager::Instance().RegisterComponent(mask, instanceId);
 
 				auto gameObject = std::dynamic_pointer_cast<GameObject>(ptr);
 				if (gameObject)
@@ -42,6 +47,8 @@ namespace astro
 	private:
 		std::unordered_map<InstanceID, std::shared_ptr<Object>> objects;
 		std::vector<std::shared_ptr<GameObject>> gameObjects;
+
+		std::shared_ptr<ComponentManager> componentManager;
 	};
 
 }
