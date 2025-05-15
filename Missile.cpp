@@ -5,8 +5,9 @@
 
 namespace astro
 {
-	Missile::Missile(InstanceID missileOwner)
+	Missile::Missile(InstanceID missileOwner, InstanceID frameManageId)
 		: missileOwner(missileOwner)
+		, frameManageId(frameManageId)
 	{
 		componentMask = static_cast<uint64_t>(
 			ComponentType::ACTIVE_COMPONENT |
@@ -34,9 +35,11 @@ namespace astro
 			auto&		renderPoints	= renderComponent->points;
 			auto&		objectType		= renderComponent->objectType;
 			float&		speed			= missileComponent->speed;
+			InstanceID& missileOwner	= missileComponent->missileOwner;
 
 			speed		= setting.bulletSpeed;
 			objectType	= ObjectType::MISSILE_ID;
+			missileOwner = this->missileOwner;
 
 			renderPoints.push_back({ 0, 0 });
 
@@ -46,17 +49,5 @@ namespace astro
 
 	void Missile::Update()
 	{
-		//auto& CM		= ComponentManager::Instance();
-		//if (this->IsEnable())
-		//{ 
-		//	auto* transformComponent	= Object::GetComponent<TransformComponent>(ComponentType::TRANSFORM_COMPONENT);
-		//	auto* bulletComponent		= Object::GetComponent<MissileComponent>(ComponentType::MISSILE_COMPONENT);
-		//	auto* moveComponent			= Object::GetComponent<MoveComponent>(ComponentType::MOVE_COMPONENT);
-
-		//	const float&	speed		= bulletComponent->speed;
-		//	float&			moveSpeed	= moveComponent->speed;
-
-		//	moveSpeed = speed;
-		//}
 	}
 }

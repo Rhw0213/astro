@@ -15,9 +15,9 @@ namespace astro
 		void Run();
 
 		void CreateObject();
-		void CreateObjectPart(ObjectType type, std::shared_ptr<Object> owner, std::shared_ptr<Object> manage, int count);
-		std::shared_ptr<Object> CreateObjectManagePart(ObjectType type, std::shared_ptr<Object> owner, int count);
-		std::shared_ptr<Object> CreateObjectOfCount(ObjectType type, int count);
+		InstanceID CreateObjectPart(ObjectType type, InstanceID owner, InstanceID manage);
+		InstanceID CreateObjectManagePart(ObjectType type, InstanceID owner);
+		std::shared_ptr<Object> CreateObjectOfCount(ObjectType type, size_t count);
 
 	private:
 		std::shared_ptr<ObjectManager>		objectManager;

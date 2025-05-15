@@ -14,9 +14,12 @@ namespace astro
 	{
 		auto& CM = ComponentManager::Instance();
 
-		auto* activeComponent = CM.GetComponent<FrameManageComponent>		(componentMask, instanceId);
+		auto* frameManageComponent = CM.GetComponent<FrameManageComponent>		(componentMask, instanceId);
 
-		activeComponent->frameOwner = frameOwner;
+		frameManageComponent->frameOwner = frameOwner;
+		frameManageComponent->frameMaxIndex = 0;
+		frameManageComponent->frameNowIndex = 0;
+		frameManageComponent->trigerTime = 0;
 	}
 
 	void FrameManage::Update()

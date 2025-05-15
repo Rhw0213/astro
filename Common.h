@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <unordered_map>
+#include <iostream>
 
 namespace astro
 {
@@ -110,22 +111,25 @@ namespace astro
 
 			// 소멸자
 			component.destroyFunc = [](void* data, size_t count) {
+				if (data)
+				{ 
 					T* typeData = static_cast<T*>(data);
 					delete[] typeData;
-				};
+				}
+			};
 
 			size_t tSize = sizeof(T);
 
 			if (component.data == nullptr)
 			{
-				component.data = new T[1];
-				component.capacity = 1;
+				component.capacity = 16;
+				component.data = new T[component.capacity];
 				component.size = tSize * component.capacity;
 				component.count = 0;
 			}
 			else
 			{
-				if (component.count >= component.capacity)
+				if (component.count >= component.capacity - 1)
 				{
 					component.capacity *= 2;
 
@@ -164,10 +168,22 @@ namespace astro
 			{
 				if (component.data && component.destroyFunc)
 				{
-					component.destroyFunc(component.data, component.count);
+					try
+					{ 
+						component.destroyFunc(component.data, component.count);
+					}
+					catch (...)
+					{
+						std::cout << "memory 중복 해제 " << std::endl;
+					}
 					component.data = nullptr;
+					component.count = 0;
+					component.capacity = 0;
 				}
 			}
+			components.clear();
+			objectIndexs.clear();
+			objectCount = 0;
 		}
 
 		template<typename T>
@@ -197,6 +213,21 @@ namespace astro
 
 			return &components[objectIndexs[instanceId]];
 		}
+	};
+
+	struct Angle
+	{
+		static float DregreeToRadian(float degree)
+		{
+			return degree * (PI / 180.f);
+		}
+
+		static float RadianToDegree(float radian)
+		{
+			return radian * (180.f / PI);
+		}
+
+		float radian = 0.f;
 	};
 
 	enum class ShaderName
@@ -239,6 +270,17 @@ namespace astro
 		MyVector2(const Vector2& v) : vec{ v } {}
 
 		operator Vector2() const { return vec; }
+
+		MyVector2 Rotate(Angle angle)
+		{
+			float cosAngle = cosf(angle.radian);
+			float sinAngle = sinf(angle.radian);
+			
+			float rotatedX = { vec.x * cosAngle - vec.y * sinAngle };
+			float rotatedY = { vec.x * sinAngle + vec.y * cosAngle };
+
+			return MyVector2{ rotatedX, rotatedY };
+		}
 
 		MyVector2 operator+(const MyVector2& other) const {
 			return { vec.x + other.vec.x, vec.y + other.vec.y };
@@ -306,20 +348,6 @@ namespace astro
 		const float& y() const { return vec.y; }
 	};
 
-	struct Angle
-	{
-		static float DregreeToRadian(float degree)
-		{
-			return degree * (PI / 180.f);
-		}
-
-		static float RadianToDegree(float radian)
-		{
-			return radian * (180.f / PI);
-		}
-
-		float radian = 0.f;
-	};
 
 	static float Normalize(float value, float minVal, float maxVal)
 	{

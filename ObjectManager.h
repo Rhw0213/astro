@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <memory>
+#include <iostream>
 #include "GameObject.h" 
 #include "ComponentManager.h" 
 
@@ -15,26 +16,33 @@ namespace astro
 		template <typename T, typename... Args>
 		std::shared_ptr<T> CreateObject(Args&&... args)
 		{
-			auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
-
-			if (ptr)
+			try
 			{
-				uint64_t	mask		= ptr.get()->GetComponentMask();
-				InstanceID  instanceId	= ptr.get()->GetInstanceID();
+				auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
 
-				objects[instanceId] = ptr;
-				ComponentManager::Instance().RegisterComponent(mask, instanceId);
+				if (ptr)
+				{
+					uint64_t	mask		= ptr.get()->GetComponentMask();
+					InstanceID  instanceId	= ptr.get()->GetInstanceID();
 
-				auto gameObject = std::dynamic_pointer_cast<GameObject>(ptr);
-				if (gameObject)
-				{ 
-					gameObjects.push_back(gameObject);
+					objects[instanceId] = ptr;
+					ComponentManager::Instance().RegisterComponent(mask, instanceId);
+
+					auto gameObject = std::dynamic_pointer_cast<GameObject>(ptr);
+					if (gameObject)
+					{ 
+						gameObjects.push_back(gameObject);
+					}
+
+					return ptr;
 				}
-
-				return ptr;
+			}
+			catch (const std::exception& e)
+			{
+				std::cerr << "Exception in CreateObject: " << e.what() << std::endl;
 			}
 
-			return ptr;
+			return nullptr;
 		}
 
 		//void InsertObject(std::shared_ptr<Object> gameObject);

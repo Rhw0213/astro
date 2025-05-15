@@ -94,15 +94,16 @@ namespace astro
 			worldRotation.radian = parentWorldRotation.radian + localRotation.radian;
 			worldScale = parentWorldScale * localScale;
 
-			float cosValue = cosf(parentWorldRotation.radian);
-			float sinValue = sinf(parentWorldRotation.radian);
+			//float cosValue = cosf(parentWorldRotation.radian);
+			//float sinValue = sinf(parentWorldRotation.radian);
 
 			MyVector2 scaledLocalPos = localPosition * parentWorldScale;
 
-			float rotatedX = scaledLocalPos.x() * cosValue - scaledLocalPos.y() * sinValue;
-			float rotatedY = scaledLocalPos.x() * sinValue + scaledLocalPos.y() * cosValue;
+			//float rotatedX = scaledLocalPos.x() * cosValue - scaledLocalPos.y() * sinValue;
+			//float rotatedY = scaledLocalPos.x() * sinValue + scaledLocalPos.y() * cosValue;
 
-			worldPosition = parentWorldPosition + MyVector2{ rotatedX, rotatedY };
+			//worldPosition = parentWorldPosition + MyVector2{ rotatedX, rotatedY };
+			worldPosition = parentWorldPosition + scaledLocalPos.Rotate(parentWorldRotation);
 		}
 		else
 		{

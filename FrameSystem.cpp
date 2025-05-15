@@ -32,6 +32,7 @@ namespace astro
 					const InstanceID&	ownerId		= frameComponents[i].target;
 					const InstanceID&	manageId	= frameComponents[i].manage;
 					size_t&				index		= frameComponents[i].index;
+					bool&				enable		= activeComponents[i].enable;
 
 					auto ownerObject = objectManager->GetObject(ownerId);
 					auto manageObject = objectManager->GetObject(manageId);
@@ -51,6 +52,8 @@ namespace astro
 						EventManager::Instance().RegisterEvent<WarpStopEvent>([&frameSize](const WarpStopEvent* e) {
 							frameSize = e->frameSize;
 						});
+
+						frameManageComponent->enable = true;
 					}
 				}
 			}
@@ -104,18 +107,21 @@ namespace astro
 
 						if (!enable && (targetId == frameOwner) && (frameIndex == frameNowIndex))
 						{
-							auto targetObject = objectManager.get()->GetObject(targetId);
-							auto* targetTransformComponent = CM.GetComponent<TransformComponent>(targetObject->GetComponentMask(), targetObject->GetInstanceID());
+							if (frameManageComponent->enable)
+							{ 
+								auto targetObject = objectManager.get()->GetObject(targetId);
+								auto* targetTransformComponent = CM.GetComponent<TransformComponent>(targetObject->GetComponentMask(), targetObject->GetInstanceID());
 
-							const Angle& targetRotation	= targetTransformComponent->worldRotation;
-							float randomRadian	= Angle::DregreeToRadian(Random::distributionFrameRange(Random::gen));
-							randomRadian		+= targetRotation.radian;
+								const Angle& targetRotation	= targetTransformComponent->worldRotation;
+								float randomRadian	= Angle::DregreeToRadian(Random::distributionFrameRange(Random::gen));
+								randomRadian		+= targetRotation.radian;
 
-							moveDirection		= { -cosf(randomRadian), -sinf(randomRadian) };
-							frameLocalPosition	= TranslatePosition(targetObject, { setting.frameTargetOffsetX, setting.frameTargetOffsetY });
-							moveSpeed			= frameSpeed;
-							localScale			= 1.f;
-							enable				= true;
+								moveDirection		= { -cosf(randomRadian), -sinf(randomRadian) };
+								frameLocalPosition	= TranslatePosition(targetObject, { setting.frameTargetOffsetX, setting.frameTargetOffsetY });
+								moveSpeed			= frameSpeed;
+								localScale			= 1.f;
+								enable				= true;
+							}
 						}
 
 						if (enable)

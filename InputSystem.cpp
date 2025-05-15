@@ -77,6 +77,11 @@ namespace astro
 				move += { -direction.x(), -direction.y() };
 			}
 
+			if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+			{
+				EventManager::Instance().RunEvent<MissileFireEvent>(MissileFireEvent());
+			}
+
 			if (IsKeyReleased(KEY_SPACE))
 			{
 				EventManager::Instance().RunEvent<WarpStopEvent>(WarpStopEvent(setting.frameSize));

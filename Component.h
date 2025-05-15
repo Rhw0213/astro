@@ -87,10 +87,10 @@ namespace astro
 /// @brief MoveComponent
 	struct MoveComponent  
 	{
-		MoveComponent(const MyVector2& direction = { 0, 0 }, const float& speed = 0.f, const MyVector2& slowVelocity = { 0, 0 })
+		MoveComponent(const MyVector2& direction = { 0, 0 }, const float& speed = 0.f, const MyVector2& force= { 0, 0 })
 			: direction(direction)
 			, speed(speed)
-			, slowVelocity(slowVelocity)
+			, force(force)
 		{ }
 
 		ComponentType GetType() 
@@ -99,7 +99,7 @@ namespace astro
 		}
 
 		MyVector2 direction{ 0, 0 };
-		MyVector2 slowVelocity{ 0, 0 };
+		MyVector2 force{ 0, 0 };
 		float speed = 0.f;
 	};
 
@@ -217,6 +217,7 @@ namespace astro
 			, frameNowIndex(0)
 			, frameMaxIndex(0)
 			, trigerTime(0.f)
+			, enable(false)
 		{ }
 
 		ComponentType GetType() 
@@ -228,6 +229,7 @@ namespace astro
 		size_t frameNowIndex = 0;
 		size_t frameMaxIndex = 0;
 		float trigerTime = 0.f;
+		bool enable = false;
 	};
 	
 /// @brief ShaderComponent
@@ -306,9 +308,12 @@ namespace astro
 /// @brief MissileComponent
 	struct MissileComponent 
 	{
-		MissileComponent(InstanceID missileOwner = 0)
+		MissileComponent(InstanceID missileOwner = 0, InstanceID missileFrameManage = 0)
 			: missileOwner(missileOwner)
+			, missileFrameManage(missileFrameManage)
 			, speed(0)
+			, firstFire(false)
+			, secondFire(false)
 		{ }
 
 		ComponentType GetType() 
@@ -316,7 +321,10 @@ namespace astro
 			return ComponentType::MISSILE_COMPONENT;
 		}
 		InstanceID missileOwner;
+		InstanceID missileFrameManage;
 		float speed;
+		bool firstFire;
+		bool secondFire;
 	};
 
 

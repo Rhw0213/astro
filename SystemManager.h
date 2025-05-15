@@ -23,12 +23,15 @@ namespace astro
 			//input
 			INPUT_SYSTEM			, 
 
+			//weapon
+			MISSILE_SYSTEM			,
 
 			STAR_SYSTEM				,
 			BRIGHT_EFFECT_SYSTEM	, 
 			WARP_SYSTEM				, 
-			FRAME_SYSTEM			, 
 			FRAME_MANAGE_SYSTEM		, 
+			FRAME_SYSTEM			, 
+
 
 			//movement
 			MOVE_SYSTEM				, 
@@ -59,7 +62,7 @@ namespace astro
 
 		struct Mask
 		{
-			unsigned int mask;
+			uint64_t mask;
 			RegisterLogic registerLogic;
 		};
 

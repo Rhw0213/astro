@@ -31,10 +31,11 @@ namespace astro
 					MyVector2&			localPosition	= transformComponent.localPosition;
 					const MyVector2&	moveDirection	= moveComponent.direction.Normalize();
 					const float&		speed			= moveComponent.speed;
-					MyVector2&			slowVelocity	= moveComponent.slowVelocity;
+					MyVector2&			force			= moveComponent.force;
 					MyVector2			velocity		= moveDirection * speed * GetFrameTime();
 
 					localPosition += velocity;
+					localPosition += force;
 					//localPosition += {0, 1};
 				}
 			}

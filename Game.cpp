@@ -8,6 +8,7 @@
 #include "Star.h"
 #include "Asteroid.h"
 #include "Setting.h"
+#include "ObjectCountState.h"
 #include <iostream> 
 
 namespace astro
@@ -16,7 +17,6 @@ namespace astro
 	{
 		InitWindow(astro::SCREEN_WIDTH, astro::SCREEN_HEIGHT, "Game");
 		SetTargetFPS(60);
-
 		if (!GameSettingManager::Instance().LoadFile())
 		{
 			return;
@@ -25,7 +25,29 @@ namespace astro
 
 	Game::~Game()
 	{
+
+		std::cout << "Game 소멸자 시작" << std::endl;
+
+		try {
+			std::cout << "시스템 매니저 해제 시작" << std::endl;
+			systemManager.reset();
+			std::cout << "시스템 매니저 해제 완료" << std::endl;
+
+			std::cout << "오브젝트 매니저 해제 시작" << std::endl;
+			objectManager.reset();
+			std::cout << "오브젝트 매니저 해제 완료" << std::endl;
+		}
+		catch (const std::exception& e) {
+			std::cout << "소멸 중 예외 발생: " << e.what() << std::endl;
+		}
+
+		std::cout << "CloseWindow 호출" << std::endl;
 		CloseWindow();
+		std::cout << "Game 소멸자 종료" << std::endl;
+		//objectManager.reset();
+		//systemManager.reset();
+		//uiControll.reset();
+		//CloseWindow();
 	}
 
 	void Game::Init()
@@ -55,87 +77,118 @@ namespace astro
 			systemManager.get()->Draw();
 			double end3 = GetTime();
 
-			//std::cout << "===============================" << std::endl;
-			//std::cout << "Update time: " << end1 - start1 << std::endl;
-			//std::cout << "Logic  time: " << end2 - start2 << std::endl;
-			//std::cout << "Draw   time: " << end3 - start3 << std::endl;
-			//std::cout << "Frame  time: " << GetFrameTime() << std::endl;
-			//std::cout << "===============================" << std::endl;
+			std::cout << "===============================" << std::endl;
+			std::cout << "Update time: " << end1 - start1 << std::endl;
+			std::cout << "Logic  time: " << end2 - start2 << std::endl;
+			std::cout << "Draw   time: " << end3 - start3 << std::endl;
+			std::cout << "Frame  time: " << GetFrameTime() << std::endl;
+			std::cout << "===============================" << std::endl;
 		}
 	}
 
 	void Game::CreateObject()
 	{
+		auto& objectCounts = ObjectCountState::Instance();
+
 		//UI
 		//uiControll = std::make_shared<UIControll>();
 		//systemManager.get()->RegisterObjectOfSystem(uiControll);
 		//uiControll->Init();
 
 		//PLAYER
-		auto object = CreateObjectOfCount(ObjectType::PLAYER_ID, 1);
+		size_t playerCount = objectCounts.AddObjectCount(ObjectType::PLAYER_ID, 1);
+		auto object = CreateObjectOfCount(ObjectType::PLAYER_ID, playerCount);
 		{
-			auto manage = CreateObjectManagePart(ObjectType::FRAME_MANAGE_ID, object, 1);
-			CreateObjectPart(ObjectType::FRAME_ID, object, manage, 30);
+			InstanceID playerFrameManage = CreateObjectManagePart(ObjectType::FRAME_MANAGE_ID, object->GetInstanceID());
+
+			size_t frameCount = objectCounts.AddObjectCount(ObjectType::FRAME_ID, 30);
+			for (size_t i = 0; i < frameCount; i++)
+			{ 
+				CreateObjectPart(ObjectType::FRAME_ID, object->GetInstanceID(), playerFrameManage);
+			}
+
+			size_t missileCount = objectCounts.AddObjectCount(ObjectType::MISSILE_ID, 15);
+			for (size_t i = 0; i < missileCount; i++)
+			{ 
+				InstanceID missile = CreateObjectPart(ObjectType::MISSILE_ID, object->GetInstanceID(), 0);
+				InstanceID missileFrameManage = CreateObjectManagePart(ObjectType::FRAME_MANAGE_ID, missile);
+
+				size_t missileFrameCount = objectCounts.AddObjectCount(ObjectType::FRAME_ID, 30);
+				for (size_t j = 0; j < missileFrameCount; j++)
+				{ 
+					CreateObjectPart(ObjectType::FRAME_ID, missile, missileFrameManage);
+				}
+			}
 		}
 
 		// STAR
-		CreateObjectOfCount(ObjectType::STAR_ID, 300);
+		size_t starCount = objectCounts.AddObjectCount(ObjectType::STAR_ID, 5000);
+		CreateObjectOfCount(ObjectType::STAR_ID, starCount);
 
 		//asteroid
 		//CreateObjectOfCount(ObjectType::ASTEROID_ID, 10);
 	}
 
-	void Game::CreateObjectPart(ObjectType type, std::shared_ptr<Object> owner, std::shared_ptr<Object> manage, int count)
+	InstanceID Game::CreateObjectPart(ObjectType type, InstanceID ownerId, InstanceID manageId)
 	{
-		for (size_t i = 0; i < count; i++)
-		{
-			if (type == ObjectType::FRAME_ID)
-			{ 
-				auto object = objectManager->CreateObject<Frame>(owner->GetInstanceID(), manage->GetInstanceID());
-				systemManager->RegisterObjectOfSystem(object);
-			}
-			else if (type == ObjectType::MISSILE_ID)
-			{ 
-				auto object = objectManager->CreateObject<Missile>(owner->GetInstanceID());
-				systemManager->RegisterObjectOfSystem(object);
-			}
+		std::shared_ptr<Object> object = nullptr;
+
+		if (type == ObjectType::FRAME_ID)
+		{ 
+			object = objectManager->CreateObject<Frame>(ownerId, manageId);
 		}
+		else if (type == ObjectType::MISSILE_ID)
+		{ 
+			object = objectManager->CreateObject<Missile>(ownerId);
+		}
+
+		if (!object)
+		{
+			std::cout << "nullptr";
+		}
+		return object->GetInstanceID();
 	}
 
-	std::shared_ptr<Object> Game::CreateObjectManagePart(ObjectType type, std::shared_ptr<Object> owner, int count)
+	InstanceID Game::CreateObjectManagePart(ObjectType type, InstanceID owner)
 	{
-		std::shared_ptr<Object> object;
+		std::shared_ptr<Object> object = nullptr;
 
 		if (type == ObjectType::FRAME_MANAGE_ID)
 		{
-			object = objectManager->CreateObject<FrameManage>(owner->GetInstanceID());
-			systemManager->RegisterObjectOfSystem(object);
+			object = objectManager->CreateObject<FrameManage>(owner);
 		}
 
-		return object;
+		if (!object)
+		{
+			std::cout << "nullptr";
+		}
+
+		return object->GetInstanceID();
 	}
 
-	std::shared_ptr<Object> Game::CreateObjectOfCount(ObjectType type, int count)
+	std::shared_ptr<Object> Game::CreateObjectOfCount(ObjectType type, size_t count)
 	{
-		std::shared_ptr<Object> object;
+		std::shared_ptr<Object> object = nullptr;
 
 		for (size_t i = 0; i < count; i++)
 		{
 			if (type == ObjectType::PLAYER_ID)
 			{
 				object = objectManager->CreateObject<Player>();
-				systemManager->RegisterObjectOfSystem(object);
 			}
 			else if (type == ObjectType::ASTEROID_ID)
 			{
 				object = objectManager->CreateObject<Asteroid>();
-				systemManager->RegisterObjectOfSystem(object);
 			}
 			else if (type == ObjectType::STAR_ID)
 			{
 				object = objectManager->CreateObject<Star>();
-				systemManager->RegisterObjectOfSystem(object);
 			}
+		}
+
+		if (!object)
+		{
+			std::cout << "nullptr";
 		}
 
 		return object;

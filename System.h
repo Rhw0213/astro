@@ -14,20 +14,19 @@ namespace astro
 		virtual void Init() = 0;
 		virtual void Process() = 0;
 
-		void RegisterObject(std::shared_ptr<Object> object)
-		{
-			for (const auto& obj : objects)
-			{
-				if (object.get() == obj.get())
-				{ 
-					return; 
-				}
-			}
+		//void RegisterObject(std::shared_ptr<Object> object)
+		//{
+		//	for (const auto& obj : objects)
+		//	{
+		//		if (object.get() == obj.get())
+		//		{ 
+		//			return; 
+		//		}
+		//	}
 
-			// find변경
-			objects.push_back(std::shared_ptr<Object>(object));
-		}
+		//	// find변경
+		//	objects.push_back(std::shared_ptr<Object>(object));
+		//}
 	protected:
-		std::vector<std::shared_ptr<Object>> objects;
 	};
 }

@@ -14,6 +14,26 @@ namespace astro
 
 	void FrameManageSystem::Init()
 	{
+		auto& CM = ComponentManager::Instance();
+		auto archetypes = CM.GetArchetypeQuery(static_cast<uint64_t>(ComponentType::FRAME_MANAGE_COMPONENT));
+
+		for (auto& archetype : archetypes)
+		{
+			auto* frameManageComponents = archetype->GetComponents<FrameManageComponent>();
+	
+			if (frameManageComponents)
+			{ 
+				//EventManager::Instance().RegisterEvent<MissileFireEvent>([&](const MissileFireEvent* e) {
+				//	for (size_t i = 0; i < archetype->objectCount; i++)
+				//	{
+				//		if (e->fireOwner == frameManageComponents[i].frameOwner)
+				//		{
+				//			frameManageComponents[i].enable = true;
+				//		}
+				//	}
+				//});
+			}
+		}
 	}
 
 	void FrameManageSystem::Process()
